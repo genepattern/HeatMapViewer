@@ -1,0 +1,29 @@
+#Tue, 27 Oct 2015 16:51:00 -0400
+userid=GenePattern
+author=GenePattern
+version=Modified to be a javascript visualizer
+taskType=javascript
+publicationDate=10/27/2015 16\:51 
+description=A configurable heat map viewer that provides users with several options for manipulating and visualizing array-based data
+os=any
+cpuType=any
+commandLine=heatmap.html ? <dataset>
+quality=production
+JVMLevel=
+language=HTML,JQuery
+name=HeatMapViewer
+privacy=public
+
+p1_TYPE=FILE
+p1_prefix_when_specified=
+p1_fileFormat=res;gct;odf;Dataset
+p1_MODE=IN
+p1_value=
+p1_description=The dataset to display - .gct, .res, .odf
+p1_optional=
+p1_name=dataset
+p1_default_value=
+p1_type=java.io.File
+
+
+LSID=urn\:lsid\:broad.mit.edu\:cancer.software.genepattern.module.visualizer\:00010\:999999999
