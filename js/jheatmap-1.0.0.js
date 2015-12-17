@@ -1041,6 +1041,109 @@ jheatmap.decorators.Linear.prototype.toColor = function (value) {
 
     return (new jheatmap.utils.RGBColor([r, g, b])).toRGB();
 };
+
+/**
+ * RowLinear decorator
+ *
+ * @example
+ * new jheatmap.decorators.RowLinear({});
+ *
+ * @class
+ * @param {Array}   [p.colors=[[[0,0,255],[255,255,255]],[[255,255,255],[255,0,0]]]  Min and max colors for each defined range that produce gradient
+ * @param {Array}   [p.outColor=[0,0,0]]                   A specific color if the value is out of the range bounds. If not defined by user, the min and max colors will be used.
+ * @param {Array}   [p.betweenColor=[187,187,187]]         A specific color if a value is between defined ranges. If not defined user it is set to black or outColor.
+ *
+ */
+jheatmap.decorators.RowLinear = function (p) {
+    p = p || {};
+
+    this.ranges = (p.ranges == undefined ? [[-2,0],[0,2]] : p.ranges);
+    this.colors = (p.colors == undefined ? [[[0,0,255],[255,255,255]], [[255,255,255],[255,0,0]]] : p.colors);
+
+    this.nullColor = (p.nullColor == undefined ? [255, 255, 255] : p.nullColor);
+    this.outColor = (p.outColor == undefined ?  null : p.outColor);
+    this.betweenColor = (p.betweenColor == undefined) ? null : p.betweenColor;
+    if (this.betweenColor == null) {
+        this.betweenColor = (p.outColor != null) ? p.outColor : [0,0,0];
+    }
+
+    this.minValue = this.ranges.reduce(function(min, arr) {
+        return Math.min(min, arr[0]);
+    }, Infinity);
+
+    this.maxValue = this.ranges.reduce(function(max, arr) {
+        return Math.max(max, arr[1]);
+    }, -Infinity);
+
+    this.minColor = this.colors[0][0];
+    this.maxColor = this.colors[this.colors.length-1][1];
+
+};
+
+/**
+ * Convert a value to a color
+ * @param value The cell value
+ * @return The corresponding color string definition.
+ */
+jheatmap.decorators.RowLinear.prototype.toColor = function (value, min, max) {
+    var middle = min + ((max-min)/2);
+    this.ranges =  [[min, middle],[middle,max]];
+    this.minValue = this.ranges.reduce(function(min, arr) {
+        return Math.min(min, arr[0]);
+    }, Infinity);
+
+    this.maxValue = this.ranges.reduce(function(max, arr) {
+        return Math.max(max, arr[1]);
+    }, -Infinity);
+
+
+    if (isNaN(value)) {
+        return (new jheatmap.utils.RGBColor(this.nullColor)).toRGB();
+    }
+
+    if (value > max || value < min) {
+        if (this.outColor != null) {
+            return (new jheatmap.utils.RGBColor(this.outColor)).toRGB();
+        }
+        else if (value > max) {
+            return (new jheatmap.utils.RGBColor(this.maxColor)).toRGB();
+        }
+        else {
+            return (new jheatmap.utils.RGBColor(this.minColor)).toRGB();
+        }
+    }
+
+    var minColor;
+    var rangeMin;
+    var maxColor;
+    var rangeMax;
+    var allColors = this.colors;
+
+    jQuery.each(this.ranges,function(index,range){
+        if (value >= range[0] && value <= range[1]) {
+            minColor = allColors[index][0];
+            rangeMin = range[0];
+            maxColor = allColors[index][1];
+            rangeMax = range[1];
+            return (true);
+        }
+    });
+
+    if (minColor == undefined || maxColor == undefined)  {
+        return (new jheatmap.utils.RGBColor(this.betweenColor)).toRGB();
+    }
+
+    var fact = (value - rangeMin) / (rangeMax - rangeMin);
+
+    var r, g, b;
+
+    r = minColor[0] + Math.round(fact * (maxColor[0] - minColor[0]));
+    g = minColor[1] + Math.round(fact * (maxColor[1] - minColor[1]));
+    b = minColor[2] + Math.round(fact * (maxColor[2] - minColor[2]));
+
+    return (new jheatmap.utils.RGBColor([r, g, b])).toRGB();
+};
+
 /**
  * Median decorator
  *
@@ -2114,8 +2217,8 @@ jheatmap.components.CellBodyPanel = function(drawer, heatmap) {
 
 };
 
-jheatmap.components.CellBodyPanel.prototype.paint = function() {
-
+jheatmap.components.CellBodyPanel.prototype.paint = function()
+{
     var heatmap = this.heatmap;
     var rz = heatmap.rows.zoom;
     var cz = heatmap.cols.zoom;
@@ -2127,6 +2230,15 @@ jheatmap.components.CellBodyPanel.prototype.paint = function() {
     var cellCtx = this.canvas.get()[0].getContext('2d');
     cellCtx.clearRect(0, 0, cellCtx.canvas.width, cellCtx.canvas.height)
     for (var row = startRow; row < endRow; row++) {
+        var rowMin = heatmap.cells.getValue(row, startCol, heatmap.cells.selectedValue);
+        var rowMax = heatmap.cells.getValue(row, startCol, heatmap.cells.selectedValue);
+        for (var col = startCol; col < endCol; col++) {
+            var val = heatmap.cells.getValue(row, col, heatmap.cells.selectedValue);
+            if (!isNaN(val)){
+                rowMin = Math.min(rowMin, val);
+                rowMax = Math.max(rowMax, val);
+            }
+        }
 
         for (var col = startCol; col < endCol; col++) {
 
@@ -2134,7 +2246,7 @@ jheatmap.components.CellBodyPanel.prototype.paint = function() {
             var value = heatmap.cells.getValue(row, col, heatmap.cells.selectedValue);
 
             if (value != null) {
-                var color = heatmap.cells.decorators[heatmap.cells.selectedValue].toColor(value);
+                var color = heatmap.cells.decorators[heatmap.cells.selectedValue].toColor(value, rowMin, rowMax);
                 cellCtx.fillStyle = color;
                 cellCtx.fillRect((col - startCol) * cz, (row - startRow) * rz, cz, rz);
             }
