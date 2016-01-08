@@ -8,7 +8,7 @@
     <target name="create-zip" depends="init">
         <antcall target="prezip"/>
         <zip destfile="${dest.dir}/${ant.project.name}.zip" whenempty="fail" defaultexcludes="true">
-            <fileset dir="." includes="heatmap.html, manifest, doc.html"/>
+            <fileset dir="." includes="*.html, manifest, doc.html"/>
             <zipfileset dir="js" prefix="js" includes="*.js"/>
             <zipfileset dir="css" prefix="css" includes="*.css, images/**"/>
             <zipfileset dir="font-awesome-4.4.0" prefix="font-awesome"/>
