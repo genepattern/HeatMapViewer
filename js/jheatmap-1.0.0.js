@@ -2332,6 +2332,63 @@ jheatmap.components.CellSelector = function(drawer, heatmap, container) {
 
 };
 
+jheatmap.components.LegendPanel = function(drawer, heatmap) {
+
+    this.heatmap = heatmap;
+    this.visible = true; //(heatmap.rows.annotations.length > 0);
+
+    // Create markup
+    this.markup = $("<tr >");
+    this.width = 360;
+    this.height = 60;
+
+    var legendCell = $("<td colspan='4'>");
+    this.bodyCanvas = $("<canvas width='" + this.width + "'" + " height='" + this.height +"'" + "></canvas>");
+    legendCell.append(this.bodyCanvas);
+    this.markup.append(legendCell);
+};
+
+jheatmap.components.LegendPanel.prototype.paint = function(context) {
+
+    if (this.visible) {
+
+        var legendContext = this.bodyCanvas.get()[0].getContext('2d');
+
+        if(context !== undefined && context !== null)
+        {
+            legendContext = context;
+            var offsetX = 30;
+            var offsetY = 30;
+        }
+        else
+        {
+            legendContext.clearRect(0, 0, legendContext.canvas.width, legendContext.canvas.height);
+            legendContext.fillStyle = "white";
+            legendContext.fillRect(0, 0, this.width, this.height);
+        }
+
+        var width = 300;
+        var height = 24;
+        var fractions = [0, 0.5, 1];
+        var colors = ["blue", "white", "red"];
+
+        var gradient = legendContext.createLinearGradient(24, 0, width, height);
+        for (var i = 0, length = fractions.length; i < length; i++) {
+            gradient.addColorStop(fractions[i], colors[i]);
+        }
+        legendContext.fillStyle = gradient;
+        legendContext.fillRect(24, 0, width, height);
+
+        legendContext.textAlign = 'center';
+        legendContext.textBaseline = 'top';
+        legendContext.fillStyle = 'black';
+
+        legendContext.fillText('row min', 30, 30);
+        legendContext.fillText('row max', width + 24, 30);
+    }
+};
+
+
 jheatmap.components.ColumnAnnotationPanel = function(drawer, heatmap) {
 
     this.heatmap = heatmap;
@@ -4226,6 +4283,7 @@ jheatmap.HeatmapDrawer = function (heatmap) {
     var verticalScrollBar = new jheatmap.components.VerticalScrollBar(drawer, heatmap);
     var horizontalScrollBar = new jheatmap.components.HorizontalScrollBar(drawer, heatmap);
 
+    var legendPanel = new jheatmap.components.LegendPanel(drawer, heatmap);
     /**
      * Build the heatmap.
      */
@@ -4235,6 +4293,9 @@ jheatmap.HeatmapDrawer = function (heatmap) {
         container.html('');
 
         var table = $("<table>", { "class": "heatmap"});
+
+        table.append(legendPanel.markup);
+
         var firstRow = $("<tr>");
         table.append(firstRow);
 
@@ -4351,9 +4412,9 @@ jheatmap.HeatmapDrawer = function (heatmap) {
         heatmap.offset.bottom = Math.min(heatmap.offset.top + maxRows, heatmap.rows.order.length);
         heatmap.offset.right = Math.min(heatmap.offset.left + maxCols, heatmap.cols.order.length);
 
-        if(showLegend && context)
+        if(showLegend)
         {
-            var width = 300;
+            /*var width = 300;
             var height = 24;
             var fractions = [0, 0.5, 1];
             var colors = ["blue", "white", "red"];
@@ -4370,8 +4431,13 @@ jheatmap.HeatmapDrawer = function (heatmap) {
             context.fillStyle = 'black';
 
             context.fillText('row min', 30, 55);
-            context.fillText('row max', width + 30, 55);
+            context.fillText('row max', width + 30, 55);*/
+
+            // Column headers panel
         }
+
+        legendPanel.paint(context);
+
         // Column headers panel
         columnHeaderPanel.paint(context);
 
