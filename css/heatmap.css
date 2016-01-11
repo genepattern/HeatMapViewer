@@ -39,35 +39,35 @@ body, html{
     width: 99%;
 }
 
-#saveImage
+.saveImage
 {
     padding: 1px;
 }
 
-#saveImage span
+.saveImage span
 {
     padding: 5px 6px 5px 6px;
     margin: 0;
     font-size: 14px;
 }
 
-#saveImageDialog div
+.saveImageDialog div
 {
     margin-top: 6px;
     padding: 3px 4px 3px 4px;
 }
 
-#saveImageDialog select {
+.saveImageDialog select {
     width: 285px;
     height: 80px;
 }
 
-#saveImageDialog span
+.saveImageDialog span
 {
     padding: 1px
 }
 
-#saveImageDialog input[type=text]
+.saveImageDialog input[type=text]
 {
     width: 280px;
 }
