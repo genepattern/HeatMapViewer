@@ -12,9 +12,6 @@ $(function()
     parser.attr("href", datasetUrl);
     datasetFileName = parser[0].pathname.substring(parser[0].pathname.lastIndexOf('/')+1);
 
-    console.log("body width: " + $("body").width());
-    console.log("body height: " + $("body").height());
-
     var bodyWidth = $("body").width();
     var totalHeight;
     $('#heatmap').heatmap(
@@ -65,16 +62,16 @@ $(function()
     {
         event.preventDefault();
 
-        var saveImageDialog = $("<div/>").attr("id", "saveImageDialog");
+        var saveImageDialog = $("<div/>").addClass("saveImageDialog");
         saveImageDialog.append($("<div/>")
             .append($("<label>File name: </label>")
                 .append("<br/>")
-                .append($("<input type='text'/>").attr("id", "imageFileName"))));
+                .append($("<input type='text'/>").addClass("imageFileName"))));
 
         saveImageDialog.append($("<div/>")
             .append($("<label>File format: </label>")
                 .append("<br/>")
-                .append($("<select/>").attr("id", "imageFileFormat")
+                .append($("<select/>").addClass("imageFileFormat")
                     .append("<option value='svg'>svg</option>")
                     .append("<option value='png'>png</option>").val("svg"))));
 
@@ -86,7 +83,7 @@ $(function()
             create: function()
             {
                 //convert to a jQuery UI select menu
-                $(this).find("#imageFileFormat").selectmenu();
+                $(this).find(".imageFileFormat").selectmenu();
             },
             buttons:
             {
@@ -123,8 +120,8 @@ $(function()
                     //gpHeatmap.size.height = 12 * ;//30000;
                     gpHeatmap.size.height = fullHeight; // / 2;
 
-                    var imageFormat = $("#imageFileFormat").val();
-                    var imageFileName = $("#imageFileName").val();
+                    var imageFormat = $(".imageFileFormat").val();
+                    var imageFileName = $(".imageFileName").val();
 
                     if(imageFormat === "png") {
                         //limit on size of heatmap if saving as PNG
@@ -196,15 +193,16 @@ $(function()
                         var file = imageFileName + ".svg";
                         saveAs(blob, file);
 
-                        gpHeatmap.size.height = 12 * 2000;
+                        gpHeatmap.size.width = originalWidth;
+                        gpHeatmap.size.height = originalHeight;
                         hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
                         hRes.build();
                         hRes.paint();
                     }
-                    $( this ).dialog( "close" );
+                    $( this ).dialog( "destroy" );
                 },
                 Cancel: function() {
-                    $( this ).dialog( "close" );
+                    $( this ).dialog( "destroy" );
                 }
             }
         });
