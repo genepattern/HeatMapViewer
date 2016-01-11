@@ -3,6 +3,7 @@ userid=GenePattern
 author=GenePattern
 version=Modified to be a javascript visualizer
 taskType=javascript
+taskDoc=doc.html
 publicationDate=10/27/2015 16\:51 
 description=A configurable heat map viewer that provides users with several options for manipulating and visualizing array-based data
 os=any
@@ -24,6 +25,3 @@ p1_optional=
 p1_name=dataset
 p1_default_value=
 p1_type=java.io.File
-
-
-LSID=urn\:lsid\:broad.mit.edu\:cancer.software.genepattern.module.visualizer\:00010\:999999999
