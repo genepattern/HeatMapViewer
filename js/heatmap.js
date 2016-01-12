@@ -7,43 +7,58 @@ function drawHeatMap()
 {
     var bodyWidth = $("body").width();
     var totalHeight;
+
+    $('#heatmap').empty();
+
     $('#heatmap').heatmap(
-        {
-            data: {
-                values: new jheatmap.readers.GctHeatmapReader({ url: datasetUrl })
-            },
-            init: function (heatmap) {
-                gpHeatmap = heatmap;
-                //heatmap.cols.zoom = 30;
-                //heatmap.rows.zoom = 30;
-                heatmap.size.width = bodyWidth - 300; //1100;
-                heatmap.size.height = 400; //30000; //305;
-                //heatmap.cols.labelSize = 330;
+    {
+        data: {
+            values: new jheatmap.readers.GctHeatmapReader({ url: datasetUrl })
+        },
+        init: function (heatmap) {
+            gpHeatmap = heatmap;
+            //heatmap.cols.zoom = 30;
+            //heatmap.rows.zoom = 30;
+            heatmap.size.width = bodyWidth - 300; //1100;
+            heatmap.size.height = 400; //30000; //305;
+            //heatmap.cols.labelSize = 330;
 
-                //var colorScale = new jheatmap.decorators.Linear({});
-                /*var colorScale = new jheatmap.decorators.Heat(
-                 {
-                 minValue: -200,
-                 midValue: 0,
-                 maxValue: 200,
-                 minColor: 0,
-                 midColor: 0,
-                 maxColor: 0
-                 });*/
+            //var colorScale = new jheatmap.decorators.Linear({});
+            /*var colorScale = new jheatmap.decorators.Heat(
+             {
+             minValue: -200,
+             midValue: 0,
+             maxValue: 200,
+             minColor: 0,
+             midColor: 0,
+             maxColor: 0
+             });*/
 
-                //heatmap.cells.decorators[0] = colorScale;
+            //heatmap.cells.decorators[0] = colorScale;
 
-                /*heatmap.cells.decorators["Values"] = new jheatmap.decorators.Categorical({
-                 values: ["-2","0","2"],
-                 colors : ["green","yellow", "yellow"]
-                 });*/
-                totalHeight = 7 * heatmap.rows.zoom;
+            /*heatmap.cells.decorators["Values"] = new jheatmap.decorators.Categorical({
+             values: ["-2","0","2"],
+             colors : ["green","yellow", "yellow"]
+             });*/
+            totalHeight = 7 * heatmap.rows.zoom;
 
-                var colorScale = new jheatmap.decorators.RowLinear();
-                heatmap.cells.decorators[0] = colorScale;
-            }
-        });
+            var colorScale = new jheatmap.decorators.RowLinear();
+            heatmap.cells.decorators[0] = colorScale;
+        }
+    });
+}
 
+$(function()
+{
+    requestParams = gpUtil.parseQueryString();
+
+    datasetUrl = requestParams["dataset"];
+
+    var parser = $('<a/>');
+    parser.attr("href", datasetUrl);
+    datasetFileName = parser[0].pathname.substring(parser[0].pathname.lastIndexOf('/')+1);
+
+    $("#fileLoaded").empty();
     $("#fileLoaded").append("<span>Loaded: <a href='" + datasetUrl + "'>" + datasetFileName + "</a></span>");
 
     $("#saveImage").button().click(function (event) {
@@ -124,9 +139,12 @@ function drawHeatMap()
                             heatmap.addClass(className);
                             //$(".borderL").hide();
                             //$(".borderT").hide();
+                            //$(".borderL").empty();
+                            //$(".borderL").css("border", "none");
+
+                            //$(".header").css("border", "none");
 
                             var visibleControlPanel = $(".topleft").children(":visible");
-
 
                             visibleControlPanel.hide();
                             $("#heatmap-details").children().hide();
@@ -183,10 +201,10 @@ function drawHeatMap()
                             saveAs(blob, file);
 
                             /*gpHeatmap.size.width = originalWidth;
-                            gpHeatmap.size.height = originalHeight;
-                            hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
-                            hRes.build();
-                            hRes.paint();*/
+                             gpHeatmap.size.height = originalHeight;
+                             hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+                             hRes.build();
+                             hRes.paint();*/
                             drawHeatMap();
                         }
                         $(this).dialog("destroy");
@@ -206,17 +224,6 @@ function drawHeatMap()
         //document.getElementById('canvasImg').src = dataURL;
         //window.location = dataURL;
     });
-}
-
-$(function()
-{
-    requestParams = gpUtil.parseQueryString();
-
-    datasetUrl = requestParams["dataset"];
-
-    var parser = $('<a/>');
-    parser.attr("href", datasetUrl);
-    datasetFileName = parser[0].pathname.substring(parser[0].pathname.lastIndexOf('/')+1);
 
     drawHeatMap();
 });
