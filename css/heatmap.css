@@ -39,6 +39,11 @@ body, html{
     width: 99%;
 }
 
+#toolbar button
+{
+    font-size: 60%;
+}
+
 .saveImage
 {
     padding: 1px;
@@ -77,3 +82,4 @@ td.border
 {
     padding: 5px;
 }
+
