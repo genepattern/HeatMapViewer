@@ -2,7 +2,7 @@ var HeatMapViewer = function()
 {
     function load(datasetUrl)
     {
-        var heatMap = new gpVisual.HeatMap(datasetUrl);
+        var heatMap = new gpVisual.HeatMap(datasetUrl, $("#heatmap"));
         var MAX_ZOOM = 80;
         var ZOOM_STEP = 4;
 
@@ -12,6 +12,59 @@ var HeatMapViewer = function()
 
         $("#fileLoaded").empty();
         $("#fileLoaded").append("<span>Loaded: <a href='" + datasetUrl + "'>" + datasetFileName + "</a></span>");
+
+        $("#options").button().click(function (event)
+        {
+            event.preventDefault();
+
+            var optionsDialog = $("<div/>").addClass("optionsDialog");
+            optionsDialog.append($("<div/>")
+                .append($("<label>Color Scheme: </label>")
+                    .append($("<input type='radio' id='relativeScheme' name='cScheme' value='relative'>" +
+                        "<label for='relativeScheme'>Relative</label>"))
+                    .append($("<input type='radio' id='globalScheme' name='cScheme' value='global'>" +
+                        "<label for='relativeScheme'>Global</label>"))));
+
+            optionsDialog.dialog(
+            {
+                title: "Options",
+                minWidth: 420,
+                minHeight: 275,
+                modal: true,
+                create: function ()
+                {
+                    if(heatMap.colorScheme == heatMap.COLOR_SCHEME.GLOBAL)
+                    {
+                        optionsDialog.find("input[name='cScheme'][value='global']").prop('checked', 'checked');
+                    }
+                    else
+                    {
+                        optionsDialog.find("input[name='cScheme'][value='relative']").prop('checked', 'checked');
+                    }
+                },
+                buttons: {
+                    OK: function ()
+                    {
+                        var colorScheme = $("input[name='cScheme']:checked").val();
+
+                        if(colorScheme == "global")
+                        {
+                            heatMap.updateColorScheme(heatMap.COLOR_SCHEME.GLOBAL, false, null);
+                        }
+                        else
+                        {
+                            heatMap.updateColorScheme(heatMap.COLOR_SCHEME.RELATIVE, false, null);
+                        }
+
+                        $(this).dialog("destroy");
+                    },
+                    Cancel: function () {
+                        $(this).dialog("destroy");
+                    }
+                }
+            });
+
+        });
 
         $("#zoomIn").button().click(function (event)
         {
@@ -24,7 +77,7 @@ var HeatMapViewer = function()
                 $("#zoomOut").prop('disabled', false);
             }
 
-            //disable zooming out if limit has been reached
+            //disable zooming in if limit has been reached
             var nextZoomLevel = heatMap.getZoomLevel() + ZOOM_STEP;
             if(nextZoomLevel > MAX_ZOOM)
             {
@@ -102,41 +155,36 @@ var HeatMapViewer = function()
 
 var gpVisual = {};
 
-gpVisual.HeatMap = function(dataUrl) {
-   var datasetUrl = dataUrl;
-   var gpHeatmap = null;
+gpVisual.HeatMap = function(dataUrl, container) {
+    var datasetUrl = dataUrl;
+    var hContainer = container;
+    var gpHeatmap = null;
+    var colorScheme = null;
+    this.COLOR_SCHEME = {
+       RELATIVE : 0,
+       GLOBAL : 1
+    };
 
     this.drawHeatMap = function ()
     {
-        var bodyWidth = $("body").width();
+        var bodyWidth = hContainer.width();
         var totalHeight;
 
-        $('#heatmap').empty();
-        $('#heatmap').heatmap(
+        var instance = this;
+        hContainer.empty();
+        hContainer.heatmap(
         {
             data: {
                 values: new jheatmap.readers.GctHeatmapReader({ url: datasetUrl })
             },
             init: function (heatmap) {
                 gpHeatmap = heatmap;
+
                 //heatmap.cols.zoom = 30;
                 //heatmap.rows.zoom = 30;
                 heatmap.size.width = bodyWidth - 300; //1100;
                 heatmap.size.height = 400; //30000; //305;
                 //heatmap.cols.labelSize = 330;
-
-                //var colorScale = new jheatmap.decorators.Linear({});
-                /*var colorScale = new jheatmap.decorators.Heat(
-                 {
-                 minValue: -200,
-                 midValue: 0,
-                 maxValue: 200,
-                 minColor: 0,
-                 midColor: 0,
-                 maxColor: 0
-                 });*/
-
-                //heatmap.cells.decorators[0] = colorScale;
 
                 /*heatmap.cells.decorators["Values"] = new jheatmap.decorators.Categorical({
                  values: ["-2","0","2"],
@@ -144,8 +192,7 @@ gpVisual.HeatMap = function(dataUrl) {
                  });*/
                 totalHeight = 7 * heatmap.rows.zoom;
 
-                var colorScale = new jheatmap.decorators.RowLinear();
-                heatmap.cells.decorators[0] = colorScale;
+                instance.setRelativeColorScheme(false);
             }
         });
     };
@@ -153,6 +200,42 @@ gpVisual.HeatMap = function(dataUrl) {
     this.getZoomLevel = function()
     {
         return gpHeatmap.rows.zoom;
+    };
+
+    this.setGlobalColorScheme = function(isDiscrete)
+    {
+        this.colorScheme = this.COLOR_SCHEME.GLOBAL;
+
+        gpHeatmap.cells.decorators[0] = new jheatmap.decorators.Heat(
+        {
+            minValue: gpHeatmap.cells.minValue,
+            midValue: 0,
+            maxValue: gpHeatmap.cells.maxValue,
+            midColor: [255,255,255]
+        });
+    };
+
+    this.setRelativeColorScheme = function(isDiscrete)
+    {
+        this.colorScheme = this.COLOR_SCHEME.RELATIVE;
+
+        gpHeatmap.cells.decorators[0] = new jheatmap.decorators.RowLinear();
+    };
+
+    this.updateColorScheme = function (colorScheme, isDiscrete, colors)
+    {
+        if(colorScheme == this.COLOR_SCHEME.GLOBAL)
+        {
+            this.setGlobalColorScheme(isDiscrete);
+        }
+        else
+        {
+            this.setRelativeColorScheme(isDiscrete);
+        }
+
+        var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+        hRes.build();
+        hRes.paint(null, true, true);
     };
 
     this.zoom = function (zoomLevel)
@@ -168,28 +251,6 @@ gpVisual.HeatMap = function(dataUrl) {
 
     this.saveImage = function ()
     {
-        /* Working - only saves portion of heatmap
-         var heatmap = $("#heatmap");
-         //var className = "html2canvasreset";
-         //heatmap.addClass(className);
-         $(".borderL").hide();
-         html2canvas(heatmap,
-         {
-         //height: 2000,
-         onrendered: function(canvas)
-         {
-         //$("#heatmap").removeClass(className);
-
-         // canvas is the final rendered <canvas> element
-         //var dataURL = canvas.toDataURL();
-         //window.location = dataURL;
-         var file = "myheatmapimage";
-         canvas.toBlob(function(blob) {
-         saveAs(blob, file);
-         });
-         }
-         }); */
-
         var originalWidth = gpHeatmap.size.width;
         var originalHeight = gpHeatmap.size.height;
 
@@ -213,39 +274,38 @@ gpVisual.HeatMap = function(dataUrl) {
             hRes.build();
             hRes.paint(null, true, true);
 
-            var heatmap = $("#heatmap");
             var className = "html2canvasreset";
-            heatmap.addClass(className);
+            hContainer.addClass(className);
             var visibleControlPanel = $(".topleft").children(":visible");
 
             visibleControlPanel.hide();
             $("#heatmap-details").children().hide();
             $(".topleft").css("border", "none");
 
-            html2canvas(heatmap,
-                {
-                    //height: 2000,
-                    onrendered: function (canvas) {
-                        //$("#heatmap").removeClass(className);
+            html2canvas(hContainer,
+            {
+                //height: 2000,
+                onrendered: function (canvas) {
+                    //$("#heatmap").removeClass(className);
 
-                        // canvas is the final rendered <canvas> element
-                        //var dataURL = canvas.toDataURL();
-                        //window.location = dataURL;
-                        var file = imageFileName;
-                        canvas.toBlob(function (blob) {
-                            saveAs(blob, file);
-                        });
+                    // canvas is the final rendered <canvas> element
+                    //var dataURL = canvas.toDataURL();
+                    //window.location = dataURL;
+                    var file = imageFileName;
+                    canvas.toBlob(function (blob) {
+                        saveAs(blob, file);
+                    });
 
-                        //this is the scrollbars
-                        //$(".borderL").show();
-                        //$(".borderT").show();
+                    //this is the scrollbars
+                    //$(".borderL").show();
+                    //$(".borderT").show();
 
-                        //$(".topleft").children().show();
-                        visibleControlPanel.show();
-                        $("#heatmap-details").children().show();
-                        this.drawHeatMap();
-                    }
-                });
+                    //$(".topleft").children().show();
+                    visibleControlPanel.show();
+                    $("#heatmap-details").children().show();
+                    this.drawHeatMap();
+                }
+            });
         }
         else {
             //the default is to save as svg

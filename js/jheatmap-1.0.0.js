@@ -445,6 +445,23 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
                 heatmap.rows.values[heatmap.rows.values.length] = [ heatmap.cells.values[row][0],  heatmap.cells.values[row][1]];
                 for (var col = 0; col < heatmap.cols.values.length; col++) {
                     cellValues[cellValues.length] = [ heatmap.cells.values[row][col + 2] ];
+
+                    //Keep track of minimum and maximum value in each row
+                    var value = parseFloat(heatmap.cells.values[row][col + 2]);
+                    if(!isNaN(value))
+                    {
+                        if(heatmap.cells.maxValue == undefined || heatmap.cells.maxValue == null
+                            || heatmap.cells.maxValue < value)
+                        {
+                            heatmap.cells.maxValue = value;
+                        }
+
+                        if(heatmap.cells.minValue == undefined || heatmap.cells.minValue == null
+                            || heatmap.cells.minValue > value)
+                        {
+                            heatmap.cells.minValue = value;
+                        }
+                    }
                 }
             }
 
@@ -2369,7 +2386,8 @@ jheatmap.components.LegendPanel.prototype.paint = function(context) {
         var width = 300;
         var height = 24;
         var fractions = [0, 0.5, 1];
-        var colors = ["blue", "white", "red"];
+        //var colors = ["blue", "white", "red"];
+        var colors = ["rgb(0,0,255)", "rgb(255,255,255)", "rgb(255,0,0)"];
 
         var gradient = legendContext.createLinearGradient(24, 0, width, height);
         for (var i = 0, length = fractions.length; i < length; i++) {
@@ -4053,6 +4071,20 @@ jheatmap.HeatmapCells = function (heatmap) {
      * @type {Array}
      */
     this.values = [];
+
+    /**
+     * Minimum value in the cells
+     *
+     * @type number
+     */
+    this.minValue = null;
+
+    /**
+     * Maximum value in the the cells
+     *
+     * @type number
+     */
+    this.maxValue = null;
 
     /**
      * Index of the current visible cell field (zero it's the first)
