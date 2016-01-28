@@ -439,6 +439,8 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
                 heatmap.cols.values[heatmap.cols.values.length] = [ heatmap.cells.header[i] ];
             }
 
+            var count = 0;
+            var sum =0;
             var cellValues = [];
             heatmap.rows.header = [ "Feature Name", "Description" ];
             for (var row = 0; row < heatmap.cells.values.length; row++) {
@@ -461,10 +463,14 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
                         {
                             heatmap.cells.minValue = value;
                         }
+
+                        sum += value;
+                        count++;
                     }
                 }
             }
 
+            heatmap.cells.meanValue =  sum / count;
             delete heatmap.cells.header;
             delete heatmap.cells.values;
             heatmap.cells.header = [ "Value" ];
@@ -2254,7 +2260,7 @@ jheatmap.components.CellBodyPanel.prototype.paint = function(context)
         cellCtx = context;
 
         offset_x = this.canvas.offset().left;
-        offset_y = this.canvas.offset().top - 132;
+        offset_y = this.canvas.offset().top - 112;
     }
     else
     {
@@ -2350,8 +2356,8 @@ jheatmap.components.CellSelector = function(drawer, heatmap, container) {
 
 };
 
-jheatmap.components.LegendPanel = function(drawer, heatmap) {
-
+jheatmap.components.LegendPanel = function(drawer, heatmap)
+{
     this.heatmap = heatmap;
     this.visible = true; //(heatmap.rows.annotations.length > 0);
 
@@ -2366,10 +2372,10 @@ jheatmap.components.LegendPanel = function(drawer, heatmap) {
     this.markup.append(legendCell);
 };
 
-jheatmap.components.LegendPanel.prototype.paint = function(context) {
-
-    if (this.visible) {
-
+jheatmap.components.LegendPanel.prototype.paint = function(context)
+{
+    if (this.visible)
+    {
         var legendContext = this.bodyCanvas.get()[0].getContext('2d');
 
         if(context !== undefined && context !== null)
@@ -2389,10 +2395,40 @@ jheatmap.components.LegendPanel.prototype.paint = function(context) {
         //var colors = ["blue", "white", "red"];
         var colors = ["rgb(0,0,255)", "rgb(255,255,255)", "rgb(255,0,0)"];
 
+        var heatmap = this.heatmap;
+
+        var decorator = heatmap.cells.decorators[0];
+        if(decorator.minColor !== undefined && decorator.minColor !== null && decorator.minColor.length == 3
+            && decorator.midColor !== undefined && decorator.midColor !== null && decorator.midColor.length == 3
+            && decorator.maxColor !== undefined && decorator.maxColor !== null && decorator.maxColor.length == 3)
+        {
+            var minColor = decorator.minColor;
+            var midColor = decorator.midColor;
+            var maxColor = decorator.maxColor;
+
+            colors[0] = (new jheatmap.utils.RGBColor(minColor)).toRGB();
+            colors[1] = (new jheatmap.utils.RGBColor(midColor)).toRGB();
+            colors[2] = (new jheatmap.utils.RGBColor(maxColor)).toRGB();
+        }
+
+        if(decorator.colors !== undefined && decorator.colors !== null && decorator.colors.length == 2
+            && decorator.colors[0].length == 2 && decorator.colors[1].length == 2)
+        {
+            var minColor = decorator.colors[0][0];
+            var midColor = decorator.colors[0][1];
+            var maxColor = decorator.colors[1][1];
+
+            colors[0] = (new jheatmap.utils.RGBColor(minColor)).toRGB();
+            colors[1] = (new jheatmap.utils.RGBColor(midColor)).toRGB();
+            colors[2] = (new jheatmap.utils.RGBColor(maxColor)).toRGB();
+        }
+
         var gradient = legendContext.createLinearGradient(24, 0, width, height);
-        for (var i = 0, length = fractions.length; i < length; i++) {
+        for (var i = 0, length = fractions.length; i < length; i++)
+        {
             gradient.addColorStop(fractions[i], colors[i]);
         }
+
         legendContext.fillStyle = gradient;
         legendContext.fillRect(24, 20, width, height);
 
@@ -2406,8 +2442,8 @@ jheatmap.components.LegendPanel.prototype.paint = function(context) {
 };
 
 
-jheatmap.components.ColumnAnnotationPanel = function(drawer, heatmap) {
-
+jheatmap.components.ColumnAnnotationPanel = function(drawer, heatmap)
+{
     this.heatmap = heatmap;
     this.visible = (heatmap.cols.annotations.length > 0);
 
@@ -3647,7 +3683,7 @@ jheatmap.components.RowHeaderPanel.prototype.paint = function(context) {
     {
         rowCtx = context;
         offset_x = this.canvas.offset().left;
-        offset_y = this.canvas.offset().top - 132;
+        offset_y = this.canvas.offset().top - 112;
     }
     else
     {
@@ -4078,6 +4114,13 @@ jheatmap.HeatmapCells = function (heatmap) {
      * @type number
      */
     this.minValue = null;
+
+    /**
+     * Mean value in the cells
+     *
+     * @type number
+     */
+    this.meanValue = null;
 
     /**
      * Maximum value in the the cells

@@ -23,13 +23,23 @@ var HeatMapViewer = function()
                     .append($("<input type='radio' id='relativeScheme' name='cScheme' value='relative'>" +
                         "<label for='relativeScheme'>Relative</label>"))
                     .append($("<input type='radio' id='globalScheme' name='cScheme' value='global'>" +
-                        "<label for='relativeScheme'>Global</label>"))));
+                        "<label for='relativeScheme'>Global</label>")))
+                .append($("<table/>")
+                        .append($("<tr>")
+                            .append("<td>Minimum Color: </td>")
+                            .append('<td><input type="text" title="Minimum' +'" class="colorPicker" data-control="hue" value="0000FF"/></td>'))
+                        .append($("<tr>")
+                            .append("<td>Midway Color:</td>")
+                            .append('<td><input type="text" title="Midway' +'" class="colorPicker" data-control="hue" value="#FFFFFF"/> </td>'))
+                        .append($("<tr>")
+                            .append("<td>Maximum Color:</td>")
+                            .append('<input type="text" title="Maximum' +'" class="colorPicker" data-control="hue" value="#FF0000"/>'))));
 
             optionsDialog.dialog(
             {
                 title: "Options",
-                minWidth: 420,
-                minHeight: 275,
+                minWidth: 440,
+                minHeight: 410,
                 modal: true,
                 create: function ()
                 {
@@ -41,10 +51,65 @@ var HeatMapViewer = function()
                     {
                         optionsDialog.find("input[name='cScheme'][value='relative']").prop('checked', 'checked');
                     }
+
+                    $(".colorPicker").minicolors({
+                        control: $(this).attr('data-control') || 'hue',
+                        defaultValue: $(this).attr('data-defaultValue') || '',
+                        inline: $(this).attr('data-inline') === 'true',
+                        letterCase: $(this).attr('data-letterCase') || 'lowercase',
+                        opacity: $(this).attr('data-opacity'),
+                        position: $(this).attr('data-position') || 'bottom left',
+                        theme: 'default'
+                    });
                 },
-                buttons: {
+                buttons:
+                {
                     OK: function ()
                     {
+
+                        $(".colorPicker").each(function()
+                        {
+                            var hexColor = $(this).minicolors('value');
+                            var title = $(this).attr('title');
+                            var rgbColorObj = $(this).minicolors("rgbObject");
+                            var rgbColor = [];
+                            rgbColor.push(rgbColorObj.r);
+                            rgbColor.push(rgbColorObj.g);
+                            rgbColor.push(rgbColorObj.b);
+
+                            var colors = heatMap.getColors();
+
+                            if(hexColor !== undefined && hexColor !== null && hexColor.length > 0)
+                            {
+                                if(title == "Minimum")
+                                {
+                                    if(colors == undefined || colors == null || colors.length < 1)
+                                    {
+                                        colors.push("");
+                                    }
+                                    colors[0] = rgbColor;
+                                }
+                                if(title == "Midway")
+                                {
+                                    if(colors == undefined || colors == null || colors.length < 2)
+                                    {
+                                        colors.push("");
+                                    }
+                                    colors[1] = rgbColor;
+                                }
+                                if(title == "Maximum")
+                                {
+                                    if(colors == undefined || colors == null || colors.length < 3)
+                                    {
+                                        colors.push("");
+                                    }
+                                    colors[2] = rgbColor;
+                                }
+
+                                heatMap.setColors(colors);
+                            }
+                        });
+
                         var colorScheme = $("input[name='cScheme']:checked").val();
 
                         if(colorScheme == "global")
@@ -58,7 +123,8 @@ var HeatMapViewer = function()
 
                         $(this).dialog("destroy");
                     },
-                    Cancel: function () {
+                    Cancel: function ()
+                    {
                         $(this).dialog("destroy");
                     }
                 }
@@ -159,18 +225,19 @@ gpVisual.HeatMap = function(dataUrl, container) {
     var datasetUrl = dataUrl;
     var hContainer = container;
     var gpHeatmap = null;
+    var colors = null;
     var colorScheme = null;
     this.COLOR_SCHEME = {
        RELATIVE : 0,
        GLOBAL : 1
     };
+    var self = this;
 
     this.drawHeatMap = function ()
     {
         var bodyWidth = hContainer.width();
         var totalHeight;
 
-        var instance = this;
         hContainer.empty();
         hContainer.heatmap(
         {
@@ -192,7 +259,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
                  });*/
                 totalHeight = 7 * heatmap.rows.zoom;
 
-                instance.setRelativeColorScheme(false);
+                self.setRelativeColorScheme(false);
             }
         });
     };
@@ -202,24 +269,101 @@ gpVisual.HeatMap = function(dataUrl, container) {
         return gpHeatmap.rows.zoom;
     };
 
+    this.setColors = function(colors)
+    {
+        self.colors = colors;
+    };
+
+    this.getColors = function()
+    {
+        if(self.colors === undefined || self.colors === null)
+        {
+            self.colors = [[0, 0, 255], [255,255,255], [255,0,0]];
+        }
+
+        return self.colors;
+    };
+
     this.setGlobalColorScheme = function(isDiscrete)
     {
-        this.colorScheme = this.COLOR_SCHEME.GLOBAL;
+        self.colorScheme = self.COLOR_SCHEME.GLOBAL;
 
-        gpHeatmap.cells.decorators[0] = new jheatmap.decorators.Heat(
+        if(!isDiscrete)
         {
-            minValue: gpHeatmap.cells.minValue,
-            midValue: 0,
-            maxValue: gpHeatmap.cells.maxValue,
-            midColor: [255,255,255]
-        });
+            var minColor = [0, 0, 255];
+            var midColor = [255,255,255];
+            var maxColor = [255,0,0];
+
+            if(self.colors !== undefined && self.colors !== null && self.colors.length > 0)
+            {
+                minColor = self.colors[0];
+                if(self.colors.length > 1)
+                {
+                    midColor = self.colors[1];
+                }
+
+                if(self.colors.length > 2)
+                {
+                    maxColor = self.colors[2];
+                }
+            }
+
+            gpHeatmap.cells.decorators[0] = new jheatmap.decorators.Heat(
+            {
+                minValue: gpHeatmap.cells.minValue,
+                midValue: gpHeatmap.cells.meanValue,
+                maxValue: gpHeatmap.cells.maxValue,
+                minColor: minColor,
+                midColor: midColor,
+                maxColor: maxColor
+            });
+        }
     };
 
     this.setRelativeColorScheme = function(isDiscrete)
     {
-        this.colorScheme = this.COLOR_SCHEME.RELATIVE;
+        self.colorScheme = this.COLOR_SCHEME.RELATIVE;
 
-        gpHeatmap.cells.decorators[0] = new jheatmap.decorators.RowLinear();
+        var rColors = [];
+        if(!isDiscrete)
+        {
+            var minColor = [0, 0, 255];
+            var midColor = [255, 255, 255];
+            var maxColor = [255, 0, 0];
+
+            if (self.colors != undefined && self.colors !== null && self.colors.length > 0)
+            {
+                minColor = self.colors[0];
+                if (self.colors.length > 1) {
+                    midColor = self.colors[1];
+                }
+
+                if (self.colors.length > 2) {
+                    maxColor = self.colors[2];
+                }
+            }
+
+            var firstColorRange = [];
+            firstColorRange.push(minColor, midColor);
+
+            var lastColorRange = [];
+            lastColorRange.push(midColor, maxColor);
+            rColors = [firstColorRange, lastColorRange];
+        }
+        else
+        {
+
+        }
+
+        gpHeatmap.cells.decorators[0] = new jheatmap.decorators.RowLinear(
+        {
+            colors: rColors
+        });
+    };
+
+    this.getColorScheme = function()
+    {
+        return this.colorScheme;
     };
 
     this.updateColorScheme = function (colorScheme, isDiscrete, colors)
@@ -280,6 +424,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
 
             visibleControlPanel.hide();
             $("#heatmap-details").children().hide();
+            var border = $(".topleft").css("border");
             $(".topleft").css("border", "none");
 
             html2canvas(hContainer,
@@ -303,7 +448,8 @@ gpVisual.HeatMap = function(dataUrl, container) {
                     //$(".topleft").children().show();
                     visibleControlPanel.show();
                     $("#heatmap-details").children().show();
-                    this.drawHeatMap();
+                    $(".topleft").css("border", border);
+                    self.drawHeatMap();
                 }
             });
         }
@@ -327,7 +473,9 @@ gpVisual.HeatMap = function(dataUrl, container) {
             var file = imageFileName + ".svg";
             saveAs(blob, file);
 
-            this.drawHeatMap();
+            var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+            hRes.build();
+            hRes.paint(null, true, true);
         }
     };
 };

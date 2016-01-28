@@ -88,3 +88,13 @@ td.border
     margin-top: 8px;
 }
 
+.optionsDialog table
+{
+   margin-top: 15px;
+}
+
+.optionsDialog table tr td
+{
+    padding: 3px;
+}
+
