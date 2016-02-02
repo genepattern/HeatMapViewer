@@ -2502,9 +2502,9 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
             colors[1] = (new jheatmap.utils.RGBColor(midColor)).toRGB();
             colors[2] = (new jheatmap.utils.RGBColor(maxColor)).toRGB();
 
-            minValueText = heatmap.cells.minValue;
-            meanValueText = heatmap.cells.meanValue;
-            maxValueText = heatmap.cells.maxValue;
+            minValueText = heatmap.cells.minValue.toFixed(2);
+            meanValueText = heatmap.cells.meanValue.toFixed(2);
+            maxValueText = heatmap.cells.maxValue.toFixed(2);
         }
 
         if(decorator.colors !== undefined && decorator.colors !== null && decorator.colors.length == 2
