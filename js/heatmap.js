@@ -23,23 +23,54 @@ var HeatMapViewer = function()
                     .append($("<input type='radio' id='relativeScheme' name='cScheme' value='relative'>" +
                         "<label for='relativeScheme'>Relative</label>"))
                     .append($("<input type='radio' id='globalScheme' name='cScheme' value='global'>" +
-                        "<label for='relativeScheme'>Global</label>")))
-                .append($("<table/>")
-                        .append($("<tr>")
-                            .append("<td>Minimum Color: </td>")
-                            .append('<td><input type="text" title="Minimum' +'" class="colorPicker" data-control="hue" value="0000FF"/></td>'))
-                        .append($("<tr>")
-                            .append("<td>Midway Color:</td>")
-                            .append('<td><input type="text" title="Midway' +'" class="colorPicker" data-control="hue" value="#FFFFFF"/> </td>'))
-                        .append($("<tr>")
-                            .append("<td>Maximum Color:</td>")
-                            .append('<input type="text" title="Maximum' +'" class="colorPicker" data-control="hue" value="#FF0000"/>'))));
+                        "<label for='globalScheme'>Global</label>")))
+                .append($("<div/>").addClass("space")
+                    .append($("<input type='radio' id='gradientColors' name='discreteGradient' value='gradient'>")
+                        .click(function()
+                        {
+                            $("#gradientColorTable").show();
+                            $("#discreteColorsDiv").hide();
+                        }))
+                    .append("<label for='gradientColors'>Use Gradient Colors</label>")
+                    .append($("<input type='radio' id='discreteColors' name='discreteGradient' value='discrete'>")
+                        .click(function()
+                        {
+                            $("#discreteColorsDiv").show();
+                            $("#gradientColorTable").hide();
+                        }))
+                    .append("<label for='discreteColors'>Use Discrete Colors</label>")))
+                .append($("<table/>").attr("id", "gradientColorTable").hide()
+                    .append($("<tr>")
+                        .append("<td>Minimum Color: </td>")
+                        .append('<td><input id="minColor" type="color" class="gradientColor" title="Minimum' +'"value="#0000FF"/></td>'))
+                    .append($("<tr>")
+                        .append("<td>Midway Color:</td>")
+                        .append('<td><input id="midColor" type="color" class="gradientColor" title="Midway' +'" value="#FFFFFF"/> </td>'))
+                    .append($("<tr>")
+                        .append("<td>Maximum Color:</td>")
+                        .append('<td><input id="maxColor" type="color" class="gradientColor" title="Maximum' +'" value="#FF0000"/></td>')))
+            .append($("<div/>").attr("id", "discreteColorsDiv").hide()
+                    .append($("<ul/>").attr("id", "discreteColorsList"))
+                    .append($("<button>Add Color</button>").attr("id", "addColor").button()
+                        .click(function()
+                        {
+                            var delButton = $("<button>x</button>");
+                            delButton.button().click(function()
+                            {
+                                $(this).parent("li").remove();
+                            });
+
+                            var colorInput = $('<li><input type="color" class="discreteColor" value="#000000"/></li>').append(delButton);
+                            $("#discreteColorsList").append(colorInput);
+                        })));
+
+            $("#discreteColorsList").sortable();
 
             optionsDialog.dialog(
             {
                 title: "Options",
-                minWidth: 440,
-                minHeight: 410,
+                minWidth: 480,
+                minHeight: 420,
                 modal: true,
                 create: function ()
                 {
@@ -52,73 +83,146 @@ var HeatMapViewer = function()
                         optionsDialog.find("input[name='cScheme'][value='relative']").prop('checked', 'checked');
                     }
 
-                    $(".colorPicker").minicolors({
-                        control: $(this).attr('data-control') || 'hue',
-                        defaultValue: $(this).attr('data-defaultValue') || '',
-                        inline: $(this).attr('data-inline') === 'true',
-                        letterCase: $(this).attr('data-letterCase') || 'lowercase',
-                        opacity: $(this).attr('data-opacity'),
-                        position: $(this).attr('data-position') || 'bottom left',
-                        theme: 'default'
-                    });
+                    var colorSelector = ".gradientColor";
+                    var hColors = heatMap.getColors();
+                    if(heatMap.isDiscrete)
+                    {
+                        optionsDialog.find("input[name='discreteGradient'][value='discrete']").click();
+                        optionsDialog.find("input[name='discreteGradient'][value='discrete']").prop('checked', 'checked');
+                        colorSelector = ".discreteColor";
+
+                        var c = 0;
+                        while(hColors != undefined && c < hColors.length)
+                        {
+                            $("#addColor").click();
+                            c++;
+                        }
+                    }
+                    else
+                    {
+                        optionsDialog.find("input[name='discreteGradient'][value='gradient']").click();
+                        optionsDialog.find("input[name='discreteGradient'][value='gradient']").prop('checked', 'checked');
+                    }
+
+                    var index = 0;
+                    while(hColors != undefined && index < hColors.length)
+                    {
+                        $("#addColor").click();
+
+                        var hexColor = (new jheatmap.utils.RGBColor(hColors[index])).toHex();
+
+                        $($(colorSelector).get(index)).val(hexColor);
+                        index++;
+                    }
                 },
                 buttons:
                 {
                     OK: function ()
                     {
+                        function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
+                        function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
+                        function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
+                        function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
 
-                        $(".colorPicker").each(function()
+                        var heatMapColors = heatMap.getColors();
+
+                        if(!heatMap.isDiscrete)
                         {
-                            var hexColor = $(this).minicolors('value');
-                            var title = $(this).attr('title');
-                            var rgbColorObj = $(this).minicolors("rgbObject");
-                            var rgbColor = [];
-                            rgbColor.push(rgbColorObj.r);
-                            rgbColor.push(rgbColorObj.g);
-                            rgbColor.push(rgbColorObj.b);
-
-                            var colors = heatMap.getColors();
-
-                            if(hexColor !== undefined && hexColor !== null && hexColor.length > 0)
+                            $(".gradientColor").each(function()
                             {
-                                if(title == "Minimum")
-                                {
-                                    if(colors == undefined || colors == null || colors.length < 1)
-                                    {
-                                        colors.push("");
+                                var hexColor = $(this).val();
+                                var R = hexToR(hexColor);
+                                var G = hexToG(hexColor);
+                                var B = hexToB(hexColor);
+
+                                var rgbColor = [R, G, B];
+
+                                var title = $(this).attr('title');
+                                if (title == "Minimum") {
+                                    if (heatMapColors == undefined || heatMapColors == null || heatMapColors.length < 1) {
+                                        heatMapColors.push("");
                                     }
-                                    colors[0] = rgbColor;
+                                    heatMapColors[0] = rgbColor;
                                 }
-                                if(title == "Midway")
-                                {
-                                    if(colors == undefined || colors == null || colors.length < 2)
-                                    {
-                                        colors.push("");
+                                if (title == "Midway") {
+                                    if (heatMapColors == undefined || heatMapColors == null || heatMapColors.length < 2) {
+                                        heatMapColors.push("");
                                     }
-                                    colors[1] = rgbColor;
+                                    heatMapColors[1] = rgbColor;
                                 }
-                                if(title == "Maximum")
-                                {
-                                    if(colors == undefined || colors == null || colors.length < 3)
-                                    {
-                                        colors.push("");
+                                if (title == "Maximum") {
+                                    if (heatMapColors == undefined || heatMapColors == null || heatMapColors.length < 3) {
+                                        heatMapColors.push("");
                                     }
-                                    colors[2] = rgbColor;
+                                    heatMapColors[2] = rgbColor;
                                 }
 
-                                heatMap.setColors(colors);
-                            }
-                        });
+                                heatMap.setColors(heatMapColors);
+                            });
 
-                        var colorScheme = $("input[name='cScheme']:checked").val();
+                            /*$(".colorPicker").each(function () {
+                                var hexColor = $(this).minicolors('value');
+                                var title = $(this).attr('title');
+                                var rgbColorObj = $(this).minicolors("rgbObject");
+                                var rgbColor = [];
+                                rgbColor.push(rgbColorObj.r);
+                                rgbColor.push(rgbColorObj.g);
+                                rgbColor.push(rgbColorObj.b);
 
-                        if(colorScheme == "global")
-                        {
-                            heatMap.updateColorScheme(heatMap.COLOR_SCHEME.GLOBAL, false, null);
+                                var colors = heatMap.getColors();
+
+                                if (hexColor !== undefined && hexColor !== null && hexColor.length > 0) {
+                                    if (title == "Minimum") {
+                                        if (colors == undefined || colors == null || colors.length < 1) {
+                                            colors.push("");
+                                        }
+                                        colors[0] = rgbColor;
+                                    }
+                                    if (title == "Midway") {
+                                        if (colors == undefined || colors == null || colors.length < 2) {
+                                            colors.push("");
+                                        }
+                                        colors[1] = rgbColor;
+                                    }
+                                    if (title == "Maximum") {
+                                        if (colors == undefined || colors == null || colors.length < 3) {
+                                            colors.push("");
+                                        }
+                                        colors[2] = rgbColor;
+                                    }
+
+                                    heatMap.setColors(colors);
+                                }
+                            });*/
                         }
                         else
                         {
-                            heatMap.updateColorScheme(heatMap.COLOR_SCHEME.RELATIVE, false, null);
+                            var discreteHeatmapColors = [];
+                            $(".discreteColor").each(function()
+                            {
+                                var hexColor = $(this).val();
+                                var R = hexToR(hexColor);
+                                var G = hexToG(hexColor);
+                                var B = hexToB(hexColor);
+
+                                var rgbColor = [R, G, B];
+
+                                discreteHeatmapColors.push(rgbColor);
+                            });
+
+                            heatMap.setColors(discreteHeatmapColors);
+                        }
+
+                        var colorScheme = $("input[name='cScheme']:checked").val();
+                        var isDiscrete = $("input[name='discreteGradient']:checked").val() == "discrete";
+
+                        if(colorScheme == "global")
+                        {
+                            heatMap.updateColorScheme(heatMap.COLOR_SCHEME.GLOBAL, isDiscrete);
+                        }
+                        else
+                        {
+                            heatMap.updateColorScheme(heatMap.COLOR_SCHEME.RELATIVE, isDiscrete);
                         }
 
                         $(this).dialog("destroy");
@@ -132,6 +236,12 @@ var HeatMapViewer = function()
 
         });
 
+        $("#resetZoom").button().click(function(event)
+        {
+            var defaultZoomLevel = heatMap.getDefaultZoomLevel();
+            heatMap.zoom(defaultZoomLevel);
+        });
+
         $("#zoomIn").button().click(function (event)
         {
             var newZoomLevel = heatMap.getZoomLevel() + ZOOM_STEP;
@@ -140,14 +250,14 @@ var HeatMapViewer = function()
             {
                 heatMap.zoom(newZoomLevel);
 
-                $("#zoomOut").prop('disabled', false);
+                $("#zoomOut").button( "option", "disabled", false );
             }
 
             //disable zooming in if limit has been reached
             var nextZoomLevel = heatMap.getZoomLevel() + ZOOM_STEP;
             if(nextZoomLevel > MAX_ZOOM)
             {
-                $(this).prop('disabled', true);
+                $(this).button( "option", "disabled", true);
             }
         });
 
@@ -159,15 +269,14 @@ var HeatMapViewer = function()
             {
                 heatMap.zoom(newZoomLevel);
 
-                $("#zoomIn").prop('disabled', false);
-
+                $("#zoomIn").button( "option", "disabled", false);
             }
 
             //disable zooming out if limit has been reached
             var nextZoomLevel = heatMap.getZoomLevel() - ZOOM_STEP;
             if(nextZoomLevel <= 0 && (nextZoomLevel > MAX_ZOOM))
             {
-                $(this).prop('disabled', true);
+                $(this).button( "option", "disabled", true);
             }
         });
 
@@ -227,6 +336,9 @@ gpVisual.HeatMap = function(dataUrl, container) {
     var gpHeatmap = null;
     var colors = null;
     var colorScheme = null;
+    var isDiscrete = false;
+    var defaultZoomLevel = null;
+
     this.COLOR_SCHEME = {
        RELATIVE : 0,
        GLOBAL : 1
@@ -247,6 +359,9 @@ gpVisual.HeatMap = function(dataUrl, container) {
             init: function (heatmap) {
                 gpHeatmap = heatmap;
 
+                //cols and rows zoom level should be the same
+                self.defaultZoomLevel = heatmap.cols.zoom;
+
                 //heatmap.cols.zoom = 30;
                 //heatmap.rows.zoom = 30;
                 heatmap.size.width = bodyWidth - 300; //1100;
@@ -262,6 +377,11 @@ gpVisual.HeatMap = function(dataUrl, container) {
                 self.setRelativeColorScheme(false);
             }
         });
+    };
+
+    this.getDefaultZoomLevel = function()
+    {
+        return self.defaultZoomLevel;
     };
 
     this.getZoomLevel = function()
@@ -287,6 +407,8 @@ gpVisual.HeatMap = function(dataUrl, container) {
     this.setGlobalColorScheme = function(isDiscrete)
     {
         self.colorScheme = self.COLOR_SCHEME.GLOBAL;
+        self.isDiscrete = isDiscrete;
+
 
         if(!isDiscrete)
         {
@@ -318,15 +440,28 @@ gpVisual.HeatMap = function(dataUrl, container) {
                 maxColor: maxColor
             });
         }
+        else
+        {
+            gpHeatmap.cells.decorators[0] = new jheatmap.decorators.DiscreteColor(
+            {
+                colors: self.getColors(),
+                relative: false,
+                minValue: gpHeatmap.cells.minValue,
+                meanValue: gpHeatmap.cells.meanValue,
+                maxValue: gpHeatmap.cells.maxValue
+            });
+        }
     };
 
     this.setRelativeColorScheme = function(isDiscrete)
     {
         self.colorScheme = this.COLOR_SCHEME.RELATIVE;
+        self.isDiscrete = isDiscrete;
 
-        var rColors = [];
         if(!isDiscrete)
         {
+            var rColors = [];
+
             var minColor = [0, 0, 255];
             var midColor = [255, 255, 255];
             var maxColor = [255, 0, 0];
@@ -349,16 +484,20 @@ gpVisual.HeatMap = function(dataUrl, container) {
             var lastColorRange = [];
             lastColorRange.push(midColor, maxColor);
             rColors = [firstColorRange, lastColorRange];
+
+            gpHeatmap.cells.decorators[0] = new jheatmap.decorators.RowLinear(
+            {
+                colors: rColors
+            });
         }
         else
         {
-
+            gpHeatmap.cells.decorators[0] = new jheatmap.decorators.DiscreteColor(
+            {
+               colors: self.getColors(),
+               relative: true
+            });
         }
-
-        gpHeatmap.cells.decorators[0] = new jheatmap.decorators.RowLinear(
-        {
-            colors: rColors
-        });
     };
 
     this.getColorScheme = function()
@@ -366,7 +505,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
         return this.colorScheme;
     };
 
-    this.updateColorScheme = function (colorScheme, isDiscrete, colors)
+    this.updateColorScheme = function (colorScheme, isDiscrete)
     {
         if(colorScheme == this.COLOR_SCHEME.GLOBAL)
         {
@@ -398,11 +537,11 @@ gpVisual.HeatMap = function(dataUrl, container) {
         var originalWidth = gpHeatmap.size.width;
         var originalHeight = gpHeatmap.size.height;
 
-        var fullHeight = gpHeatmap.rows.values.length * gpHeatmap.rows.zoom;
+        var fullHeight = gpHeatmap.rows.values.length * gpHeatmap.rows.zoom + 100;
         var fullWidth = gpHeatmap.cols.values.length * gpHeatmap.cols.zoom;
 
         //gpHeatmap.size.height = 12 * ;//30000;
-        gpHeatmap.size.height = fullHeight; // / 2;
+        gpHeatmap.size.height = fullHeight;
 
         var imageFormat = $(".imageFileFormat").val();
         var imageFileName = $(".imageFileName").val();
@@ -459,7 +598,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
             gpHeatmap.size.height = fullHeight; // / 2;
             gpHeatmap.size.width = fullWidth;
 
-            var context = new C2S(gpHeatmap.size.width + 300, gpHeatmap.size.height + 300);
+            var context = new C2S(gpHeatmap.size.width + 300, gpHeatmap.size.height + 350);
 
             var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
             hRes.build();

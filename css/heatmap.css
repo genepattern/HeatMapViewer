@@ -88,6 +88,11 @@ td.border
     margin-top: 8px;
 }
 
+.optionsDialog input[type=color]
+{
+    width: 50px;
+}
+
 .optionsDialog table
 {
    margin-top: 15px;
@@ -97,4 +102,39 @@ td.border
 {
     padding: 3px;
 }
+
+.space
+{
+    margin: 14px 14px 8px 14px;
+}
+
+#discreteColorsDiv button
+{
+    font-size: 80%;
+}
+
+#discreteColorsList
+{
+    list-style-type: none;
+    overflow: auto;
+    max-height: 180px;
+}
+
+#discreteColorsList button
+{
+    font-size: 22%;
+    margin-left: 10px;
+}
+
+#discreteColorsList li
+{
+    margin: 4px 3px 5px 3px;
+    /*padding: 0.4em;
+    padding-left: 1.5em;*/
+    font-size: 1.4em;
+    height: 30px;
+    width: 95px;
+    float: left;
+}
+
 

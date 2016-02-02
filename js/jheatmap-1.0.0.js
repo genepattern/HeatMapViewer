@@ -1100,7 +1100,6 @@ jheatmap.decorators.RowLinear = function (p) {
 
     this.minColor = this.colors[0][0];
     this.maxColor = this.colors[this.colors.length-1][1];
-
 };
 
 /**
@@ -1165,6 +1164,90 @@ jheatmap.decorators.RowLinear.prototype.toColor = function (value, min, max) {
     b = minColor[2] + Math.round(fact * (maxColor[2] - minColor[2]));
 
     return (new jheatmap.utils.RGBColor([r, g, b])).toRGB();
+};
+
+
+/**
+ * RowLinear decorator
+ *
+ * @example
+ * new jheatmap.decorators.RowLinear({});
+ *
+ * @class
+ * @param {Array}   [p.colors=[[[0,0,255],[255,255,255]],[[255,255,255],[255,0,0]]]  Min and max colors for each defined range that produce gradient
+ * @param {Array}   [p.outColor=[0,0,0]]                   A specific color if the value is out of the range bounds. If not defined by user, the min and max colors will be used.
+ * @param {Array}   [p.betweenColor=[187,187,187]]         A specific color if a value is between defined ranges. If not defined user it is set to black or outColor.
+ *
+ */
+jheatmap.decorators.DiscreteColor = function (p) {
+    p = p || {};
+
+    this.colors = (p.colors == undefined ? [[0,0,255],[255,255,255], [64,224,208],[255,0,0], [255,255,0], [138,43,226]] : p.colors);
+    this.relative = (p.relative == undefined ? true : p.relative);
+    this.minValue = p.minValue;
+    this.meanValue = p.meanValue;
+    this.maxValue = p.maxValue;
+    this.isDiscrete = true;
+};
+
+
+/**
+ * Convert a value to a discrete color
+ * @param value The cell value
+ * @return The corresponding color string definition.
+ */
+jheatmap.decorators.DiscreteColor.prototype.toColor = function (value, minVal, maxVal, meanVal) {
+
+    var computeLinearSlots = function(min, max, mean, slots) {
+        var ave = (mean == Number.NEGATIVE_INFINITY ? (max - min) / 2 : mean);
+        var num = slots.length;
+        var halfway = Math.floor(slots.length / 2);
+
+        // calc the range min -> ave
+        var inc2 = (ave - min) / halfway;
+        var lin_val = min;
+        for (var i = 0; i < halfway; i++) {
+            lin_val += inc2;
+            slots[i] = lin_val;
+        }
+
+        // ave -> max
+        var inc = (max - ave) / (num - halfway);
+        lin_val = ave;
+        for (i = halfway; i < num; i++) {
+            lin_val += inc;
+            slots[i] = lin_val;
+        }
+    };
+
+    var theMin = this.minValue != undefined ? this.minValue : minVal;
+    var theMean = this.meanValue != undefined ? this.meanValue : meanVal;
+    var theMax = this.max != undefined ? this.maxValue : maxVal;
+
+    var slots = [];
+    slots = this.colors.slice();
+    computeLinearSlots(theMin, theMax, theMean, slots);
+
+    var getColor = function(myValue, mySlots, myColors)
+    {
+        var num = mySlots.length - 1;
+        if (myValue >= slots[num]) {
+            return myColors[num];
+        }
+        for (var i = num; i > 0; i--)
+        {
+            // rev loop
+            if (myValue < slots[i] && myValue >= mySlots[i - 1]) {// assumes slots[i]
+                // > slots[i - 1]
+                return myColors[i];
+            }
+        }
+        return myColors[0];// all the rest
+    };
+
+
+    var rgbColorArr = getColor(value, slots, this.colors);
+    return (new jheatmap.utils.RGBColor(rgbColorArr)).toRGB();
 };
 
 /**
@@ -2270,21 +2353,26 @@ jheatmap.components.CellBodyPanel.prototype.paint = function(context)
     for (var row = startRow; row < endRow; row++) {
         var rowMin = heatmap.cells.getValue(row, startCol, heatmap.cells.selectedValue);
         var rowMax = heatmap.cells.getValue(row, startCol, heatmap.cells.selectedValue);
+        var sum = 0;
+        var total = 0;
         for (var col = startCol; col < endCol; col++) {
             var val = heatmap.cells.getValue(row, col, heatmap.cells.selectedValue);
             if (!isNaN(val)){
                 rowMin = Math.min(rowMin, val);
                 rowMax = Math.max(rowMax, val);
+                sum += parseFloat(val, val);
+                total++;
             }
         }
 
+        var rowMean = sum / total;
         for (var col = startCol; col < endCol; col++) {
 
             // Iterate all values
             var value = heatmap.cells.getValue(row, col, heatmap.cells.selectedValue);
 
             if (value != null) {
-                var color = heatmap.cells.decorators[heatmap.cells.selectedValue].toColor(value, rowMin, rowMax);
+                var color = heatmap.cells.decorators[heatmap.cells.selectedValue].toColor(value, rowMin, rowMax, rowMean);
                 cellCtx.fillStyle = color;
                 cellCtx.fillRect(offset_x + (col - startCol) * cz, offset_y + (row - startRow) * rz, cz, rz);
 
@@ -2397,6 +2485,10 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
 
         var heatmap = this.heatmap;
 
+        var minValueText = "row min";
+        var meanValueText = "row mean";
+        var maxValueText = "row max";
+
         var decorator = heatmap.cells.decorators[0];
         if(decorator.minColor !== undefined && decorator.minColor !== null && decorator.minColor.length == 3
             && decorator.midColor !== undefined && decorator.midColor !== null && decorator.midColor.length == 3
@@ -2409,6 +2501,10 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
             colors[0] = (new jheatmap.utils.RGBColor(minColor)).toRGB();
             colors[1] = (new jheatmap.utils.RGBColor(midColor)).toRGB();
             colors[2] = (new jheatmap.utils.RGBColor(maxColor)).toRGB();
+
+            minValueText = heatmap.cells.minValue;
+            meanValueText = heatmap.cells.meanValue;
+            maxValueText = heatmap.cells.maxValue;
         }
 
         if(decorator.colors !== undefined && decorator.colors !== null && decorator.colors.length == 2
@@ -2423,21 +2519,41 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
             colors[2] = (new jheatmap.utils.RGBColor(maxColor)).toRGB();
         }
 
-        var gradient = legendContext.createLinearGradient(24, 0, width, height);
-        for (var i = 0, length = fractions.length; i < length; i++)
+        if(decorator.isDiscrete !== undefined && decorator.isDiscrete)
         {
-            gradient.addColorStop(fractions[i], colors[i]);
+            if(decorator.colors != undefined)
+            {
+                colors = decorator.colors;
+            }
+
+            for (var i = 0, length = colors.length; i < length; i++)
+            {
+                legendContext.fillStyle = (new jheatmap.utils.RGBColor(colors[i])).toRGB()
+                legendContext.fillRect(24 + (i*30), 20, 30, 15);
+
+                legendContext.strokeStyle = 'black';
+                legendContext.strokeRect(24 + (i*30), 20, 30, 15);
+            }
         }
+        else
+        {
+            var gradient = legendContext.createLinearGradient(24, 0, width, height);
+            for (var i = 0, length = fractions.length; i < length; i++)
+            {
+                gradient.addColorStop(fractions[i], colors[i]);
+            }
 
-        legendContext.fillStyle = gradient;
-        legendContext.fillRect(24, 20, width, height);
+            legendContext.fillStyle = gradient;
+            legendContext.fillRect(24, 20, width, height);
 
-        legendContext.textAlign = 'center';
-        legendContext.textBaseline = 'top';
-        legendContext.fillStyle = 'black';
+            legendContext.textAlign = 'center';
+            legendContext.textBaseline = 'top';
+            legendContext.fillStyle = 'black';
 
-        legendContext.fillText('row min', 24, 50);
-        legendContext.fillText('row max', width + 24, 50);
+            legendContext.fillText(minValueText, 24, 50);
+            legendContext.fillText(meanValueText, (width/2) + 24, 50);
+            legendContext.fillText(maxValueText, width + 24, 50);
+        }
     }
 };
 
