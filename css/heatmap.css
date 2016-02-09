@@ -139,8 +139,6 @@ td.border
 #discreteColorsList li
 {
     margin: 4px 3px 5px 3px;
-    /*padding: 0.4em;
-    padding-left: 1.5em;*/
     font-size: 1.4em;
     height: 30px;
     width: 95px;
@@ -152,12 +150,28 @@ td.border
     margin-top: 10px;
 }
 
-.labelDialog select {
-    height: 20px;
+.labelDialog h4
+{
+    margin-bottom: 6px;
+    background-color: lightgrey;
 }
 
+#addFsLabelsDiv, #removeFsLabelsDiv
+{
+    border: 1px solid lightgrey;
+}
 
 .labelDialog
 {
     font-size: 15px;
+}
+
+#removeFsLabels table tr:nth-child(even)
+{
+    background-color: green;
+}
+
+#removeFsLabels td
+{
+    padding: 2px;
 }

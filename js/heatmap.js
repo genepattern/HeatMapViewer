@@ -324,14 +324,80 @@ var HeatMapViewer = function()
             var labelDialog = $("<div/>").addClass("labelDialog");
 
             labelDialog.append($("<div/>")
-                .append($("<div/>").attr("id", "removeFsLabels"))
                 .append($("<label>Type of label: </label>")
-                    .append($("<div/>")
-                        .append($("<select/>").addClass("fsLabels")
-                        .append("<option value='samples'>Samples</option>")
-                        .append("<option value='features'>Features</option>").val("samples")))
-                    .append("<br/>")
-                    .append("<input id='labelFile' type='file'>")));
+                    .append($("<span/>")
+                        .append($("<label>Samples </label>")
+                            .prepend("<input type='radio' id='samplesLabel' name='fsLabels' value='samples' checked='checked'>"))
+                        .append($("<label>Features</label>")
+                            .prepend("<input type='radio' id='featuresLabel' name='fsLabels' value='features'>"))))
+                    .append($("<div/>").attr("id", "addFsLabelsDiv")
+                        .append("<h4>Add Label</h4>")
+                        .append("<input id='labelFile' type='file'>"))
+                .append($("<div/>").attr("id", "removeFsLabelsDiv")));
+
+            var showExistingLabels = function(labels)
+            {
+                if(labels == undefined)
+                {
+                    return;
+                }
+
+                $("#removeFsLabelsDiv").empty();
+
+                var removeLabelTable = $("<table/>");
+                for(var f = 0; f < labels.length; f++)
+                {
+                    var removeLabelTr = $("<tr/>");
+                    removeLabelTr.append("<td>" + labels[f] + "</td>");
+
+                    var delCheckbox = $("<input type='checkbox'>").click(function()
+                    {
+                        var removeLabels = $(this).parents(".labelDialog").data("removeLabels");
+                        if(removeLabels == undefined)
+                        {
+                            removeLabels = [];
+                        }
+
+                        var selectedLabel = $(this).data("label");
+                        removeLabels.push(selectedLabel);
+                        $(this).parents(".labelDialog").data("removeLabels", removeLabels);
+                    });
+
+                    delCheckbox.data("label", labels[f]);
+                    $("<td/>").append(delCheckbox).appendTo(removeLabelTr);
+
+                    removeLabelTable.append(removeLabelTr);
+                }
+
+                if(labels.length > 0)
+                {
+                    removeLabelTable.prepend("<tr><td>Name</td><td>Remove</td></tr>");
+
+                    $("#removeFsLabelsDiv").prepend("<h4>Remove Label</h4>");
+                    $("#removeFsLabelsDiv").append(removeLabelTable);
+                    $("#removeFsLabelsDiv").show();
+                }
+                else
+                {
+                    $("#removeFsLabelsDiv").hide();
+                }
+            };
+
+            labelDialog.find("#featuresLabel").click(function()
+            {
+                //Ignore the Name and Description Labels
+                var fLabels = heatMap.getFeatureLabels();
+                if(fLabels != undefined && fLabels.length > 1)
+                {
+                   // fLabels = fLabels.splice(2);
+                }
+                showExistingLabels(fLabels);
+            });
+
+            labelDialog.find("#samplesLabel").click(function()
+            {
+                showExistingLabels(heatMap.getSampleLabels());
+            });
 
             labelDialog.dialog(
             {
@@ -341,49 +407,7 @@ var HeatMapViewer = function()
                 modal: true,
                 create: function ()
                 {
-                    $(this).find(".fsLabels").selectmenu(
-                    {
-                        width: 190
-                    });
-
-                    //If there are existing labels
-                    var sampleLabels = heatMap.getSampleLabels();
-                    var removeLabelTable = $("<table/>");
-                    for(var f = 0; f < sampleLabels.length; f++)
-                    {
-                        var removeLabelTr = $("<tr/>");
-                        removeLabelTr.append("<td>" + sampleLabels[f] + "</td>");
-
-                        var delCheckbox = $("<input type='checkbox'>").click(function()
-                        {
-                            var removeLabels = $(this).parents(".labelDialog").data("removeLabels");
-                            if(removeLabels == undefined)
-                            {
-                                removeLabels = [];
-                            }
-
-                            var selectedLabel = $(this).data("label");
-                            removeLabels.push(selectedLabel);
-                            $(this).parents(".labelDialog").data("removeLabels", removeLabels);
-                        });
-
-                        delCheckbox.data("label", sampleLabels[f]);
-                        $("<td/>").append(delCheckbox).appendTo(removeLabelTr);
-
-                        removeLabelTable.append(removeLabelTr);
-                    }
-
-                    if(sampleLabels.length > 0)
-                    {
-                        removeLabelTable.prepend("<tr><td>Name</td><td>Remove</td></tr>");
-                    }
-                    $("#removeFsLabels").append(removeLabelTable);
-
-
-                    if(sampleLabels.length > 0)
-                    {
-                        $("#removeFsLabels").append("<hr/>");
-                    }
+                    $("#samplesLabel").click();
                 },
                 buttons: {
                     OK: function ()
@@ -391,27 +415,36 @@ var HeatMapViewer = function()
                         if($('#labelFile').get(0).files.length > 0)
                         {
                             var file = $('#labelFile').get(0).files[0];
-                            //var reader = new FileReader();
 
-                            var clsUrl = URL.createObjectURL(file);
-                            heatMap.addSampleLabels(clsUrl,file.name);
+                            var fileUrl = URL.createObjectURL(file);
+
+                            var labelType = $("input[name='fsLabels']:checked").val();
+
+                            if(labelType === "features")
+                            {
+                                heatMap.addFeatureLabels(fileUrl);
+                            }
+                            else
+                            {
+                                heatMap.addSampleLabels(fileUrl,file.name);
+                            }
                         }
-
-                        /*reader.addEventListener("load", function () {
-                            var url = reader.result;
-                            var label = file.name;
-
-                            heatMap.addSampleLabels(clsUrl, label);
-                        }, false);
-
-                        reader.readAsDataURL(file);*/
 
                         var removeLabels = $(this).data("removeLabels");
                         if(removeLabels !== undefined)
                         {
                             for(var l=0;l<removeLabels.length;l++)
                             {
-                                heatMap.removeSampleLabels(removeLabels[l]);
+                                //If there are existing labels
+                                var typeOfLabel = $("input[name='fsLabels']:checked").val();
+                                if(typeOfLabel === "features")
+                                {
+                                    heatMap.removeFeatureLabels(removeLabels[l]);
+                                }
+                                else
+                                {
+                                    heatMap.removeSampleLabels(removeLabels[l]);
+                                }
                             }
                         }
 
@@ -460,13 +493,9 @@ gpVisual.HeatMap = function(dataUrl, container) {
         hContainer.heatmap(
         {
             data: {
-                //cols: new jheatmap.readers.ClsReader({ url: clsUrl }),
-                //cols: new jheatmap.readers.AnnotationReader({ url: "http://jheatmap.github.io/jheatmap/examples/quickstart/quickstart-cols.tsv" }),
-                //values: new jheatmap.readers.TableHeatmapReader({ url: "http://jheatmap.github.io/jheatmap/examples/quickstart/quickstart-data.tsv" })
                 values: new jheatmap.readers.GctHeatmapReader(
                 {
-                    url: datasetUrl//,
-                   // colAnnotationUrl: clsUrl
+                    url: datasetUrl
                 })
             },
             init: function (heatmap) {
@@ -499,6 +528,70 @@ gpVisual.HeatMap = function(dataUrl, container) {
                 self.setRelativeColorScheme(false);
             }
         });
+    };
+
+    this.getFeatureLabels = function()
+    {
+        return  gpHeatmap.rows.header.length > 1 ? gpHeatmap.rows.header.slice(2) : [];
+    };
+
+    this.addFeatureLabels = function(featureLabelsUrl)
+    {
+        var currentFeatureLabels = gpHeatmap.rows.header.slice();
+        //add class labels
+        var featureLabelsAdded = function()
+        {
+            for(var l=0;l<gpHeatmap.rows.header.length;l++)
+            {
+                var label = gpHeatmap.rows.header[l];
+                var existingLabel = $.inArray(label, currentFeatureLabels);
+
+                //check if this is a new label
+                if(existingLabel == -1)
+                {
+                    var labelIndex = $.inArray(label, gpHeatmap.rows.header);
+
+                    if (gpHeatmap.rows.annotations == undefined) {
+                        gpHeatmap.rows.annotations = [];
+                    }
+
+                    gpHeatmap.rows.decorators[labelIndex] = new jheatmap.decorators.CategoricalRandom();
+                    gpHeatmap.rows.annotations.push(labelIndex);
+                }
+            }
+            var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+            hRes.build();
+            hRes.paint(null, true, true);
+        };
+
+        var addFLabels = new jheatmap.readers.FeatureLabelsReader(
+        {
+            url: featureLabelsUrl
+        });
+
+        addFLabels.read(gpHeatmap.rows, featureLabelsAdded);
+    };
+
+    this.removeFeatureLabels = function(label)
+    {
+        var labelIndex = $.inArray(label, gpHeatmap.rows.header);
+        if(labelIndex !== -1)
+        {
+            gpHeatmap.rows.decorators.splice(labelIndex, 1);
+            gpHeatmap.rows.header.splice(labelIndex, 1);
+
+            var annIndex = $.inArray(labelIndex, gpHeatmap.rows.annotations);
+            gpHeatmap.rows.annotations.splice(annIndex, 1);
+
+            //remove the values as well
+            for(var v=0; v < gpHeatmap.rows.values.length; v++)
+            {
+                gpHeatmap.rows.values[v].splice(labelIndex, 1);
+            }
+            var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+            hRes.build();
+            hRes.paint(null, true, true);
+        }
     };
 
     this.getSampleLabels = function()

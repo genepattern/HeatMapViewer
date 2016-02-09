@@ -317,6 +317,77 @@ jheatmap.utils.reindexField = function(value, headers) {
 
     return value;
 };
+
+/**
+ * A text separated value file table reader
+ *
+ * @example
+ * new jheatmap.readers.AnnotationReader({ url: "filename.tsv" });
+ *
+ * @class
+ * @param {string}  p.url                 File url
+ * @param {string} [p.separator="tab"]    Value separator character
+ */
+jheatmap.readers.FeatureLabelsReader = function (p) {
+    p = p || {};
+    this.url = p.url || "";
+    this.separator = p.separator || "\t";
+};
+
+/**
+ * Asynchronously reads a text separated value file, the result is returned in the 'result' parameter.
+ *
+ * @param {Array} result.header Returns the file header as a string array.
+ * @param {Array} result.values Returns the file values as an array of arrays.
+ * @param {function}    initialize  A callback function that is called when the file is loaded.
+ *
+ */
+jheatmap.readers.FeatureLabelsReader.prototype.read = function (result, initialize) {
+
+    var sep = this.separator;
+    var url = this.url;
+
+    jQuery.ajax({
+
+        url: url,
+
+        dataType: "text",
+
+        success: function (file) {
+
+            if(result.header == undefined)
+            {
+                result.header = [];
+            }
+            var lines = file.replace('\r', '').split('\n');
+            jQuery.each(lines, function (lineCount, line) {
+                if (line.length > 0 && !line.startsWith("#")) {
+                    if (lineCount == 0) {
+                        result.header = result.header.concat(line.splitCSV(sep));
+                    }
+                    else
+                    {
+                        var labelLines = line.splitCSV(sep);
+                        for(var v=0; v <labelLines.length;v++)
+                        {
+                            if(result.values[v] === undefined)
+                            {
+                                result.values[v] = [];
+                            }
+
+                            result.values[v].push(labelLines[v]);
+                        }
+                    }
+                }
+            });
+
+            result.ready = true;
+
+            initialize.call(this);
+        }
+    });
+};
+
 /**
  * A text separated value file table reader
  *
@@ -354,11 +425,15 @@ jheatmap.readers.AnnotationReader.prototype.read = function (result, initialize)
 
         success: function (file) {
 
+            if(result.header == undefined)
+            {
+                result.header = [];
+            }
             var lines = file.replace('\r', '').split('\n');
             jQuery.each(lines, function (lineCount, line) {
                 if (line.length > 0 && !line.startsWith("#")) {
                     if (lineCount == 0) {
-                        result.header = line.splitCSV(sep);
+                        result.header = result.header.concat(line.splitCSV(sep));
                     } else {
                         result.values[result.values.length] = line.splitCSV(sep);
                     }
@@ -368,11 +443,10 @@ jheatmap.readers.AnnotationReader.prototype.read = function (result, initialize)
             result.ready = true;
 
             initialize.call(this);
-
         }
-
     });
 };
+
 /**
  * A text separated value GenePattern GCT file matrix reader. The file has to follow this format:
  *
