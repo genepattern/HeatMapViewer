@@ -21,7 +21,7 @@ var HeatMapViewer = function()
             optionsDialog.append($("<div/>")
                 .append($("<label>Color Scheme: </label>")
                     .append($("<input type='radio' id='relativeScheme' name='cScheme' value='relative'>" +
-                        "<label for='relativeScheme'>Relative</label>"))
+                        "<label for='relativeScheme'>Row Relative</label>"))
                     .append($("<input type='radio' id='globalScheme' name='cScheme' value='global'>" +
                         "<label for='globalScheme'>Global</label>")))
                 .append($("<div/>").addClass("space")
@@ -107,8 +107,6 @@ var HeatMapViewer = function()
                     var index = 0;
                     while(hColors != undefined && index < hColors.length)
                     {
-                        $("#addColor").click();
-
                         var hexColor = (new jheatmap.utils.RGBColor(hColors[index])).toHex();
 
                         $($(colorSelector).get(index)).val(hexColor);
@@ -125,6 +123,10 @@ var HeatMapViewer = function()
                         function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
 
                         var heatMapColors = heatMap.getColors();
+
+                        var isDiscrete = $("input[name='discreteGradient']:checked").val() == "discrete";
+
+                        heatMap.isDiscrete = isDiscrete;
 
                         if(!heatMap.isDiscrete)
                         {
@@ -214,7 +216,6 @@ var HeatMapViewer = function()
                         }
 
                         var colorScheme = $("input[name='cScheme']:checked").val();
-                        var isDiscrete = $("input[name='discreteGradient']:checked").val() == "discrete";
 
                         if(colorScheme == "global")
                         {
@@ -319,6 +320,110 @@ var HeatMapViewer = function()
             });
         });
 
+        $("#addLabels").button().click(function (event) {
+            var labelDialog = $("<div/>").addClass("labelDialog");
+
+            labelDialog.append($("<div/>")
+                .append($("<div/>").attr("id", "removeFsLabels"))
+                .append($("<label>Type of label: </label>")
+                    .append($("<div/>")
+                        .append($("<select/>").addClass("fsLabels")
+                        .append("<option value='samples'>Samples</option>")
+                        .append("<option value='features'>Features</option>").val("samples")))
+                    .append("<br/>")
+                    .append("<input id='labelFile' type='file'>")));
+
+            labelDialog.dialog(
+            {
+                title: "Add/Remove Label",
+                minWidth: 400,
+                minHeight: 270,
+                modal: true,
+                create: function ()
+                {
+                    $(this).find(".fsLabels").selectmenu(
+                    {
+                        width: 190
+                    });
+
+                    //If there are existing labels
+                    var sampleLabels = heatMap.getSampleLabels();
+                    var removeLabelTable = $("<table/>");
+                    for(var f = 0; f < sampleLabels.length; f++)
+                    {
+                        var removeLabelTr = $("<tr/>");
+                        removeLabelTr.append("<td>" + sampleLabels[f] + "</td>");
+
+                        var delCheckbox = $("<input type='checkbox'>").click(function()
+                        {
+                            var removeLabels = $(this).parents(".labelDialog").data("removeLabels");
+                            if(removeLabels == undefined)
+                            {
+                                removeLabels = [];
+                            }
+
+                            var selectedLabel = $(this).data("label");
+                            removeLabels.push(selectedLabel);
+                            $(this).parents(".labelDialog").data("removeLabels", removeLabels);
+                        });
+
+                        delCheckbox.data("label", sampleLabels[f]);
+                        $("<td/>").append(delCheckbox).appendTo(removeLabelTr);
+
+                        removeLabelTable.append(removeLabelTr);
+                    }
+
+                    if(sampleLabels.length > 0)
+                    {
+                        removeLabelTable.prepend("<tr><td>Name</td><td>Remove</td></tr>");
+                    }
+                    $("#removeFsLabels").append(removeLabelTable);
+
+
+                    if(sampleLabels.length > 0)
+                    {
+                        $("#removeFsLabels").append("<hr/>");
+                    }
+                },
+                buttons: {
+                    OK: function ()
+                    {
+                        if($('#labelFile').get(0).files.length > 0)
+                        {
+                            var file = $('#labelFile').get(0).files[0];
+                            //var reader = new FileReader();
+
+                            var clsUrl = URL.createObjectURL(file);
+                            heatMap.addSampleLabels(clsUrl,file.name);
+                        }
+
+                        /*reader.addEventListener("load", function () {
+                            var url = reader.result;
+                            var label = file.name;
+
+                            heatMap.addSampleLabels(clsUrl, label);
+                        }, false);
+
+                        reader.readAsDataURL(file);*/
+
+                        var removeLabels = $(this).data("removeLabels");
+                        if(removeLabels !== undefined)
+                        {
+                            for(var l=0;l<removeLabels.length;l++)
+                            {
+                                heatMap.removeSampleLabels(removeLabels[l]);
+                            }
+                        }
+
+                        $(this).dialog("destroy");
+                    },
+                    Cancel: function () {
+                        $(this).dialog("destroy");
+                    }
+                }
+            });
+        });
+
         heatMap.drawHeatMap();
     }
 
@@ -350,14 +455,31 @@ gpVisual.HeatMap = function(dataUrl, container) {
         var bodyWidth = hContainer.width();
         var totalHeight;
 
+        var clsUrl = "http://www.broadinstitute.org/cancer/software/genepattern/data/all_aml/all_aml_train.cls";
         hContainer.empty();
         hContainer.heatmap(
         {
             data: {
-                values: new jheatmap.readers.GctHeatmapReader({ url: datasetUrl })
+                //cols: new jheatmap.readers.ClsReader({ url: clsUrl }),
+                //cols: new jheatmap.readers.AnnotationReader({ url: "http://jheatmap.github.io/jheatmap/examples/quickstart/quickstart-cols.tsv" }),
+                //values: new jheatmap.readers.TableHeatmapReader({ url: "http://jheatmap.github.io/jheatmap/examples/quickstart/quickstart-data.tsv" })
+                values: new jheatmap.readers.GctHeatmapReader(
+                {
+                    url: datasetUrl//,
+                   // colAnnotationUrl: clsUrl
+                })
             },
             init: function (heatmap) {
                 gpHeatmap = heatmap;
+
+                heatmap.controls.shortcuts = false;
+                //heatmap.controls.columnSelector = false;
+                heatmap.controls.cellSelector = false;
+
+                //heatmap.cols.decorators["all_aml_train.cls"] = new jheatmap.decorators.CategoricalRandom();
+                //heatmap.cols.annotations = ["all_aml_train.cls"];
+                //heatmap.cols.decorators["subtype"] = new jheatmap.decorators.CategoricalRandom();
+                //heatmap.cols.annotations = ["subtype"];
 
                 //cols and rows zoom level should be the same
                 self.defaultZoomLevel = heatmap.cols.zoom;
@@ -378,6 +500,63 @@ gpVisual.HeatMap = function(dataUrl, container) {
             }
         });
     };
+
+    this.getSampleLabels = function()
+    {
+        return  gpHeatmap.cols.header.length > 1 ? gpHeatmap.cols.header.slice(1) : [];
+    };
+
+    this.addSampleLabels = function(clsUrl, label)
+    {
+        //add class labels
+        var clsAdded = function()
+        {
+            var labelIndex = $.inArray(label, gpHeatmap.cols.header);
+
+            if(gpHeatmap.cols.annotations == undefined)
+            {
+                gpHeatmap.cols.annotations = [];
+            }
+
+            gpHeatmap.cols.decorators[labelIndex] = new jheatmap.decorators.CategoricalRandom();
+            gpHeatmap.cols.annotations.push(labelIndex);
+
+            var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+            hRes.build();
+            hRes.paint(null, true, true);
+        };
+
+        var addCls = new jheatmap.readers.ClsReader(
+        {
+            url: clsUrl,
+            label: label
+        });
+
+        addCls.read(gpHeatmap.cols, clsAdded);
+    };
+
+    this.removeSampleLabels = function(label)
+    {
+        var labelIndex = $.inArray(label, gpHeatmap.cols.header);
+        if(labelIndex !== -1)
+        {
+            gpHeatmap.cols.decorators.splice(labelIndex, 1);
+            gpHeatmap.cols.header.splice(labelIndex, 1);
+
+            var annIndex = $.inArray(labelIndex, gpHeatmap.cols.annotations);
+            gpHeatmap.cols.annotations.splice(annIndex, 1);
+
+            //remove the values as well
+            for(var v=0; v < gpHeatmap.cols.values.length; v++)
+            {
+                gpHeatmap.cols.values[v].splice(labelIndex, 1);
+            }
+            var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+            hRes.build();
+            hRes.paint(null, true, true);
+        }
+    };
+
 
     this.getDefaultZoomLevel = function()
     {
@@ -444,7 +623,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
         {
             gpHeatmap.cells.decorators[0] = new jheatmap.decorators.DiscreteColor(
             {
-                colors: self.getColors(),
+                colors: self.colors,
                 relative: false,
                 minValue: gpHeatmap.cells.minValue,
                 meanValue: gpHeatmap.cells.meanValue,
@@ -494,7 +673,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
         {
             gpHeatmap.cells.decorators[0] = new jheatmap.decorators.DiscreteColor(
             {
-               colors: self.getColors(),
+               colors: self.colors,
                relative: true
             });
         }

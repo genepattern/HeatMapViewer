@@ -56,6 +56,11 @@ body, html{
     font-size: 14px;
 }
 
+.saveImageDialog
+{
+    font-size: 15px;
+}
+
 .saveImageDialog div
 {
     margin-top: 6px;
@@ -105,7 +110,12 @@ td.border
 
 .space
 {
-    margin: 14px 14px 8px 14px;
+    margin: 20px 14px 8px 0;
+}
+
+.space label
+{
+    margin-right: 10px;
 }
 
 #discreteColorsDiv button
@@ -137,4 +147,17 @@ td.border
     float: left;
 }
 
+.labelDialog div
+{
+    margin-top: 10px;
+}
 
+.labelDialog select {
+    height: 20px;
+}
+
+
+.labelDialog
+{
+    font-size: 15px;
+}

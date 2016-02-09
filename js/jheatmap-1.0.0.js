@@ -434,10 +434,28 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
                 }
             });
 
-            heatmap.cols.header = [ "Samples" ];
+            if(heatmap.cols.header === undefined || heatmap.cols.header === null)
+            {
+                heatmap.cols.header = [];
+            }
+
+            heatmap.cols.header.unshift( "Samples" );
+            for (var i = 0; i < heatmap.cells.header.length; i++)
+            {
+                if(heatmap.cols.values !== undefined && heatmap.cols.values[i] != undefined)
+                {
+                    heatmap.cols.values[i].unshift(heatmap.cells.header[i]);
+                }
+                else
+                {
+                    heatmap.cols.values[heatmap.cols.values.length] = [ heatmap.cells.header[i] ];
+                }
+            }
+
+            /*heatmap.cols.header = [ "Samples" ];
             for (var i = 0; i < heatmap.cells.header.length; i++) {
                 heatmap.cols.values[heatmap.cols.values.length] = [ heatmap.cells.header[i] ];
-            }
+            }*/
 
             var count = 0;
             var sum =0;
@@ -508,6 +526,100 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
         }
     });
 };
+
+/**
+ * A GenePattern CLS file
+ *
+ * @example
+ * new jheatmap.readers.CLSReader({ url: "filename.cls" });
+ *
+ * @class
+ * @param {string}  p.url                 File url
+ * @param {string} [p.separator="tab"]    Value separator character
+ */
+jheatmap.readers.ClsReader = function (p) {
+    p = p || {};
+    this.url = p.url || "";
+    this.separator = p.separator || " ";
+    this.label = p.label || "";
+};
+
+/**
+ * Asynchronously reads a cls file, the result is returned in the 'result' parameter.
+ *
+ * @param {Array} result.header Returns the file header as a string array.
+ * @param {Array} result.values Returns the file values as an array of arrays.
+ * @param {function}    initialize  A callback function that is called when the file is loaded.
+ *
+ */
+jheatmap.readers.ClsReader.prototype.read = function (result, initialize) {
+
+    var sep = this.separator;
+    var url = this.url;
+    var label = this.label;
+
+    jQuery.ajax({
+        url: url,
+
+        dataType: "text",
+
+        success: function (file) {
+
+            if(result.header == undefined )
+            {
+                result.header = [];
+            }
+
+            if(label == undefined || label.length < 1)
+            {
+                var filename = url.split("/");
+                result.header.push(filename[filename.length-1]);
+            }
+            else
+            {
+                result.header.push(label);
+            }
+
+            if(result.values === undefined)
+            {
+                result.values = [];
+            }
+
+            var lines = file.replace('\r', '').split('\n');
+            jQuery.each(lines, function (lineCount, line) {
+                line = line.trim();
+                if (line.length > 0 && lineCount > 0) {
+                    if (lineCount == 1 && line.startsWith("#"))
+                    {
+                        //the is the line that has the class names
+                        //result.header = line.splitCSV(sep);
+                        //result.header = result.header.slice(2);
+                    }
+
+                    if(lineCount > 1)
+                    {
+                        var labelLines = line.splitCSV(sep);
+                        for(var v=0; v <labelLines.length;v++)
+                        {
+                            if(result.values[v] === undefined)
+                            {
+                                result.values[v] = [];
+                            }
+
+                            result.values[v].push(labelLines[v]);
+                        }
+                        //result.values[result.values.length] = labelLines;
+                    }
+                }
+            });
+
+            result.ready = true;
+
+            initialize.call(this);
+        }
+    });
+};
+
 /**
  * A text separated value file matrix reader. The file has to follow this format:
  *
@@ -1188,6 +1300,7 @@ jheatmap.decorators.DiscreteColor = function (p) {
     this.meanValue = p.meanValue;
     this.maxValue = p.maxValue;
     this.isDiscrete = true;
+    this.slots = [];
 };
 
 
