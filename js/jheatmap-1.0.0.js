@@ -1409,12 +1409,13 @@ jheatmap.decorators.DiscreteColor.prototype.toColor = function (value, minVal, m
 
     var theMin = this.minValue != undefined ? this.minValue : minVal;
     var theMean = this.meanValue != undefined ? this.meanValue : meanVal;
-    var theMax = this.max != undefined ? this.maxValue : maxVal;
+    var theMax = this.maxValue != undefined ? this.maxValue : maxVal;
 
     var slots = [];
     slots = this.colors.slice();
     computeLinearSlots(theMin, theMax, theMean, slots);
 
+    this.slots = slots;
     var getColor = function(myValue, mySlots, myColors)
     {
         var num = mySlots.length - 1;
@@ -2667,8 +2668,7 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
         var width = 300;
         var height = 24;
         var fractions = [0, 0.5, 1];
-        //var colors = ["blue", "white", "red"];
-        var colors = ["rgb(0,0,255)", "rgb(255,255,255)", "rgb(255,0,0)"];
+        var colors = ["rgb(0,0,255)", "rgb(255,255,255)", "rgb(255,0,0)"]; //blue, white, red
 
         var heatmap = this.heatmap;
 
@@ -2713,13 +2713,38 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
                 colors = decorator.colors;
             }
 
+            //Make the minimum value the first value in the slots
+            var slots = decorator.slots;
+
+            if(!decorator.relative && slots !== undefined)
+            {
+                slots = decorator.slots.slice();
+                slots.unshift(heatmap.cells.minValue);
+            }
+
             for (var i = 0, length = colors.length; i < length; i++)
             {
-                legendContext.fillStyle = (new jheatmap.utils.RGBColor(colors[i])).toRGB()
-                legendContext.fillRect(24 + (i*30), 20, 30, 15);
+                legendContext.fillStyle = (new jheatmap.utils.RGBColor(colors[i])).toRGB();
+
+                var barWidth = 60;
+                legendContext.fillRect(24 + (i*barWidth), 20, barWidth, 15);
 
                 legendContext.strokeStyle = 'black';
-                legendContext.strokeRect(24 + (i*30), 20, 30, 15);
+                legendContext.strokeRect(24 + (i*barWidth), 20, barWidth, 15);
+
+                if(!decorator.relative && slots !== undefined && slots.length > i)
+                {
+                    legendContext.fillStyle = "black";
+                    legendContext.fillText(slots[i].toFixed(2), (24 + (i*barWidth)), 47);
+                }
+                else
+                {
+                    if(i==0 && decorator.relative)
+                    {
+                        legendContext.fillStyle = "black";
+                        legendContext.fillText("row relative", (24 + (i*barWidth)), 47);
+                    }
+                }
             }
         }
         else
@@ -4813,8 +4838,6 @@ jheatmap.HeatmapDrawer = function (heatmap) {
             // Column headers panel
         }
 
-        legendPanel.paint(context);
-
         // Column headers panel
         columnHeaderPanel.paint(context);
 
@@ -4829,6 +4852,9 @@ jheatmap.HeatmapDrawer = function (heatmap) {
 
         // Cells
         cellsBodyPanel.paint(context);
+
+        //Heatmap Legend
+        legendPanel.paint(context);
 
         // Vertical scroll
         if(!hideScrollBars)
