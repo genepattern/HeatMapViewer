@@ -1,5 +1,25 @@
 var HeatMapViewer = function()
 {
+    function showErrorMessage(msg, title)
+    {
+        var errorDialog = $( "<div/>" ).dialog(
+        {
+            title: title,
+            minHeight: 140,
+            create: function ()
+            {
+                $(this).append("<p>" + msg +"</p>");
+            },
+            buttons:
+            {
+                OK: function()
+                {
+                    $(this).dialog("destroy");
+                }
+            }
+        });
+    }
+
     function load(datasetUrl)
     {
         var heatMap = new gpVisual.HeatMap(datasetUrl, $("#heatmap"));
@@ -117,12 +137,13 @@ var HeatMapViewer = function()
                 {
                     OK: function ()
                     {
+                        var heatMapColors = heatMap.getColors();
+
                         function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
                         function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
                         function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
                         function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
 
-                        var heatMapColors = heatMap.getColors();
 
                         var isDiscrete = $("input[name='discreteGradient']:checked").val() == "discrete";
 
@@ -213,6 +234,15 @@ var HeatMapViewer = function()
                             });
 
                             heatMap.setColors(discreteHeatmapColors);
+                        }
+
+                        //Check that a color is set
+                        heatMapColors = heatMap.getColors();
+                        if(heatMapColors == undefined || heatMapColors.length < 1)
+                        {
+                            var errorMsg = "Error: no colors specified!";
+                            showErrorMessage(errorMsg, "Missing Colors");
+                            return;
                         }
 
                         var colorScheme = $("input[name='cScheme']:checked").val();
@@ -457,6 +487,87 @@ var HeatMapViewer = function()
             });
         });
 
+        $("#find").button().click(function()
+        {
+            var findDialog = $("<div/>").addClass("findDialog");
+
+            findDialog.append($("<div/>")
+                .append("<input type='text' id='findText' name='find'>")
+                .append($("<div/>").attr("id", "findTypeDiv")
+                    .append($("<input type='radio' id='findFeatures' name='findType' class='findType' value='features' checked='checked'>" +
+                    "<label for='findFeatures'>Features</label>"))
+                    .append($("<input type='radio' id='findSamples' name='findType' class='findType' value='samples'>" +
+                    "<label for='findSamples'>Samples</label>"))));
+
+            $("input[name='findType']").click(function()
+            {
+                //reset the find index
+                $(this).parents(".findDialog").data("lastFindIndex", "-1");
+            });
+
+            $("#findText").click(function()
+            {
+                var lastVal = $(this).data("lastValue");
+                var curVal = $(this).val().trim();
+
+                if(lastVal != curVal)
+                {
+                    //reset the find index
+                    $(this).parents(".findDialog").data("lastFindIndex", "-1");
+                    $(this).data("lastValue", curVal);
+                }
+            });
+
+            findDialog.dialog(
+            {
+                title: "Find",
+                minWidth: 350,
+                minHeight: 235,
+                buttons:
+                {
+                    "Find Next": function ()
+                    {
+                        var findText = $("#findText").val();
+                        var findType = $("input[name='findType']:checked").val();
+                        var startIndex = $(this).data("lastFindIndex");
+                        if(startIndex == undefined || startIndex == -1)
+                        {
+                            startIndex = 0;
+                        }
+                        else
+                        {
+                            startIndex = startIndex +1;
+                        }
+
+                        var lastIndex = -1;
+                        if(findType == "samples")
+                        {
+                            lastIndex = heatMap.findNextSample(findText, startIndex);
+                        }
+                        else
+                        {
+                            lastIndex = heatMap.findNextFeature(findText, startIndex);
+                        }
+
+                        if(lastIndex == -1)
+                        {
+                            showErrorMessage("No matches found", "Find Error");
+                        }
+                        else
+                        {
+                            $(this).data("lastFindIndex",lastIndex);
+                        }
+                    },
+                    Close: function ()
+                    {
+                        //Reset the last find indexret
+                        $(this).data("lastFindIndex", -1);
+                        $(this).dialog("destroy");
+                    }
+                }
+            });
+        });
+
         heatMap.drawHeatMap();
     }
 
@@ -505,11 +616,6 @@ gpVisual.HeatMap = function(dataUrl, container) {
                 //heatmap.controls.columnSelector = false;
                 heatmap.controls.cellSelector = false;
 
-                //heatmap.cols.decorators["all_aml_train.cls"] = new jheatmap.decorators.CategoricalRandom();
-                //heatmap.cols.annotations = ["all_aml_train.cls"];
-                //heatmap.cols.decorators["subtype"] = new jheatmap.decorators.CategoricalRandom();
-                //heatmap.cols.annotations = ["subtype"];
-
                 //cols and rows zoom level should be the same
                 self.defaultZoomLevel = heatmap.cols.zoom;
 
@@ -528,6 +634,99 @@ gpVisual.HeatMap = function(dataUrl, container) {
                 self.setRelativeColorScheme(false);
             }
         });
+    };
+
+    /*
+     * Returns the index of the feature with matching text in the heatmap
+     */
+    this.findNextFeature = function(text, startingIndex)
+    {
+        return self._findNext(text, startingIndex, "feature");
+    };
+
+    /*
+     * Returns the index of the feature with matching text in the heatmap
+     */
+    this.findNextSample = function(text, startingIndex)
+    {
+        return self._findNext(text, startingIndex, "sample");
+    };
+
+    /*
+     * Returns the index of the next matching feature or sample in the heatmap
+     */
+    this._findNext = function(text, startingIndex, type)
+    {
+        startingIndex = startingIndex == undefined ? 0: startingIndex;
+
+        //default to searching features if type is not specified
+        var data = gpHeatmap.rows.values;
+        if(type == "sample")
+        {
+            data =  gpHeatmap.cols.values;
+        }
+
+        for(var s = startingIndex;s < data.length;s++)
+        {
+            if(data[s][0].indexOf(text) != -1)
+            {
+                if(type == "sample")
+                {
+                    self._scrollToColumn(s, 10);
+                }
+                else
+                {
+                    self._scrollToRow(s, 10);
+                }
+                return s;
+            }
+        }
+
+        return -1;
+    };
+
+    this._scrollToRow  = function(rowIndex, offSet)
+    {
+        if(rowIndex == undefined || rowIndex < 0 || rowIndex >= gpHeatmap.rows.length)
+        {
+            return;
+        }
+
+        if(offSet == undefined || offSet < 0)
+        {
+            offSet = 0;
+        }
+
+        gpHeatmap.rows.selected = [rowIndex];
+
+        var scrollRow = (rowIndex - offSet) < 0 ? 0 : (rowIndex - offSet);
+        gpHeatmap.offset.top = scrollRow;
+
+        var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+        hRes.build();
+        hRes.paint(null, true, true);
+    };
+
+    this._scrollToColumn  = function(colIndex, offSet)
+    {
+        if(colIndex == undefined || colIndex < 0 || colIndex >= gpHeatmap.cols.length)
+        {
+            return;
+        }
+
+        if(offSet == undefined || offSet < 0)
+        {
+            offSet = 0;
+        }
+
+        gpHeatmap.cols.selected = [colIndex];
+
+        var scrollColumn = (colIndex - offSet) < 0 ? 0 : (colIndex - offSet);
+        gpHeatmap.offset.left = scrollColumn;
+
+        var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+        hRes.build();
+        hRes.paint(null, true, true);
     };
 
     this.getFeatureLabels = function()

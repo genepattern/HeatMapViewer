@@ -175,3 +175,23 @@ td.border
 {
     padding: 2px;
 }
+
+#findText
+{
+    margin-top: 24px;
+    margin-left: 30px
+    width: 85%;
+}
+
+.findDialog .findType
+{
+    margin-top: 14px;
+    margin-left: 14px;
+}
+
+.findDialog div
+{
+    width: 300px;
+    margin-left: 12px;
+}
+
