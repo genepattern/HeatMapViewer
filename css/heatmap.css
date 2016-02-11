@@ -179,8 +179,8 @@ td.border
 #findText
 {
     margin-top: 24px;
-    margin-left: 30px
-    width: 85%;
+    margin-left: 10px;
+    width: 88%;
 }
 
 .findDialog .findType
@@ -191,7 +191,6 @@ td.border
 
 .findDialog div
 {
-    width: 300px;
-    margin-left: 12px;
+    margin-left: 22px;
 }
 
