@@ -80,7 +80,7 @@ var HeatMapViewer = function()
                                 var hexColor = (new jheatmap.utils.RGBColor(hColors[index])).toHex();
 
                                 $("#addColor").click();
-                                $($(".discreteColor").get(index)).val(hexColor);
+                                $($(".discreteColor").get(index)).spectrum("set", hexColor);
                                 index++;
                             }
                         }))
@@ -88,13 +88,13 @@ var HeatMapViewer = function()
                 .append($("<table/>").attr("id", "gradientColorTable").hide()
                     .append($("<tr>")
                         .append("<td>Minimum Color: </td>")
-                        .append('<td><input id="minColor" type="color" class="gradientColor" title="Minimum' +'"value="#0000FF"/></td>'))
+                        .append('<td><input id="minColor" type="text" class="gradientColor" title="Minimum' +'"value="#0000FF"/></td>'))
                     .append($("<tr>")
                         .append("<td>Midway Color:</td>")
-                        .append('<td><input id="midColor" type="color" class="gradientColor" title="Midway' +'" value="#FFFFFF"/> </td>'))
+                        .append('<td><input id="midColor" type="text" class="gradientColor" title="Midway' +'" value="#FFFFFF"/> </td>'))
                     .append($("<tr>")
                         .append("<td>Maximum Color:</td>")
-                        .append('<td><input id="maxColor" type="color" class="gradientColor" title="Maximum' +'" value="#FF0000"/></td>')))
+                        .append('<td><input id="maxColor" type="text" class="gradientColor" title="Maximum' +'" value="#FF0000"/></td>')))
             .append($("<div/>").attr("id", "discreteColorsDiv").hide()
                     .append($("<ul/>").attr("id", "discreteColorsList"))
                     .append($("<button>Add Color</button>").attr("id", "addColor").button()
@@ -106,8 +106,9 @@ var HeatMapViewer = function()
                                 $(this).parent("li").remove();
                             });
 
-                            var colorInput = $('<li><input type="color" class="discreteColor" value="#000000"/></li>').append(delButton);
-                            $("#discreteColorsList").append(colorInput);
+                            var colorInput = $('<input type="text" class="discreteColor" value="#000000"/>');
+                            $("<li/>").append(colorInput).append(delButton).appendTo("#discreteColorsList");
+                            colorInput.spectrum();
                         })));
 
             $("#discreteColorsList").sortable();
@@ -120,6 +121,7 @@ var HeatMapViewer = function()
                 modal: true,
                 create: function ()
                 {
+                    $(".gradientColor").spectrum();
                     if(heatMap.colorScheme == heatMap.COLOR_SCHEME.GLOBAL)
                     {
                         optionsDialog.find("input[name='cScheme'][value='global']").prop('checked', 'checked');
@@ -159,10 +161,10 @@ var HeatMapViewer = function()
                         {
                             $(".gradientColor").each(function()
                             {
-                                var hexColor = $(this).val();
-                                var R = hexToR(hexColor);
-                                var G = hexToG(hexColor);
-                                var B = hexToB(hexColor);
+                                var rgbColorObj = $(this).spectrum("get").toRgb() ;
+                                var R = Math.round(rgbColorObj.r); //hexToR(hexColor);
+                                var G = Math.round(rgbColorObj.g); //hexToG(hexColor);
+                                var B = Math.round(rgbColorObj.b); // hexToB(hexColor);
 
                                 var rgbColor = [R, G, B];
 
@@ -188,51 +190,16 @@ var HeatMapViewer = function()
 
                                 heatMap.setColors(heatMapColors);
                             });
-
-                            /*$(".colorPicker").each(function () {
-                                var hexColor = $(this).minicolors('value');
-                                var title = $(this).attr('title');
-                                var rgbColorObj = $(this).minicolors("rgbObject");
-                                var rgbColor = [];
-                                rgbColor.push(rgbColorObj.r);
-                                rgbColor.push(rgbColorObj.g);
-                                rgbColor.push(rgbColorObj.b);
-
-                                var colors = heatMap.getColors();
-
-                                if (hexColor !== undefined && hexColor !== null && hexColor.length > 0) {
-                                    if (title == "Minimum") {
-                                        if (colors == undefined || colors == null || colors.length < 1) {
-                                            colors.push("");
-                                        }
-                                        colors[0] = rgbColor;
-                                    }
-                                    if (title == "Midway") {
-                                        if (colors == undefined || colors == null || colors.length < 2) {
-                                            colors.push("");
-                                        }
-                                        colors[1] = rgbColor;
-                                    }
-                                    if (title == "Maximum") {
-                                        if (colors == undefined || colors == null || colors.length < 3) {
-                                            colors.push("");
-                                        }
-                                        colors[2] = rgbColor;
-                                    }
-
-                                    heatMap.setColors(colors);
-                                }
-                            });*/
                         }
                         else
                         {
                             var discreteHeatmapColors = [];
                             $(".discreteColor").each(function()
                             {
-                                var hexColor = $(this).val();
-                                var R = hexToR(hexColor);
-                                var G = hexToG(hexColor);
-                                var B = hexToB(hexColor);
+                                var rgbColorObj = $(this).spectrum("get").toRgb() ;
+                                var R = Math.round(rgbColorObj.r); //hexToR(hexColor);
+                                var G = Math.round(rgbColorObj.g); //hexToG(hexColor);
+                                var B = Math.round(rgbColorObj.b); // hexToB(hexColor);
 
                                 var rgbColor = [R, G, B];
 
