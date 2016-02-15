@@ -64,12 +64,13 @@ body, html{
 .saveImageDialog div
 {
     margin-top: 6px;
-    padding: 3px 4px 3px 4px;
+    padding: 3px 4px 3px 22px;
 }
 
 .saveImageDialog select {
+    margin-top: 7px;
     width: 285px;
-    height: 80px;
+    height: 60px;
 }
 
 .saveImageDialog span
@@ -79,6 +80,7 @@ body, html{
 
 .saveImageDialog input[type=text]
 {
+    margin-top: 7px;
     width: 280px;
     height: 30px;
 }

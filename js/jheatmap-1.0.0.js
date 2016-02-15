@@ -2531,7 +2531,7 @@ jheatmap.components.CellBodyPanel.prototype.paint = function(context)
         cellCtx = context;
 
         offset_x = this.canvas.offset().left;
-        offset_y = this.canvas.offset().top - 112;
+        offset_y = this.canvas.offset().top - 100;
     }
     else
     {
@@ -2640,7 +2640,7 @@ jheatmap.components.LegendPanel = function(drawer, heatmap)
     // Create markup
     this.markup = $("<tr >");
     this.width = 360;
-    this.height = 70;
+    this.height = 45;
 
     var legendCell = $("<td colspan='2'>");
     this.bodyCanvas = $("<canvas width='" + (heatmap.size.width + heatmap.rows.labelSize + 16) + "'" + " height='" + this.height +"'" + "></canvas>");
@@ -2666,7 +2666,7 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
         }
 
         var width = 300;
-        var height = 24;
+        var height = 17;
         var fractions = [0, 0.5, 1];
         var colors = ["rgb(0,0,255)", "rgb(255,255,255)", "rgb(255,0,0)"]; //blue, white, red
 
@@ -2727,22 +2727,22 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
                 legendContext.fillStyle = (new jheatmap.utils.RGBColor(colors[i])).toRGB();
 
                 var barWidth = 60;
-                legendContext.fillRect(24 + (i*barWidth), 20, barWidth, 15);
+                legendContext.fillRect(24 + (i*barWidth), 10, barWidth, 15);
 
                 legendContext.strokeStyle = 'black';
-                legendContext.strokeRect(24 + (i*barWidth), 20, barWidth, 15);
+                legendContext.strokeRect(24 + (i*barWidth), 10, barWidth, 15);
 
                 if(!decorator.relative && slots !== undefined && slots.length > i)
                 {
                     legendContext.fillStyle = "black";
-                    legendContext.fillText(slots[i].toFixed(2), (24 + (i*barWidth)), 47);
+                    legendContext.fillText(slots[i].toFixed(2), (24 + (i*barWidth)), 35);
                 }
                 else
                 {
                     if(i==0 && decorator.relative)
                     {
                         legendContext.fillStyle = "black";
-                        legendContext.fillText("row relative", (24 + (i*barWidth)), 47);
+                        legendContext.fillText("row relative", (24 + (i*barWidth)), 35);
                     }
                 }
             }
@@ -2756,15 +2756,15 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
             }
 
             legendContext.fillStyle = gradient;
-            legendContext.fillRect(24, 20, width, height);
+            legendContext.fillRect(24, 8, width, height);
 
             legendContext.textAlign = 'center';
             legendContext.textBaseline = 'top';
             legendContext.fillStyle = 'black';
 
-            legendContext.fillText(minValueText, 24, 50);
-            legendContext.fillText(meanValueText, (width/2) + 24, 50);
-            legendContext.fillText(maxValueText, width + 24, 50);
+            legendContext.fillText(minValueText, 24, 25);
+            legendContext.fillText(meanValueText, (width/2) + 24, 25);
+            legendContext.fillText(maxValueText, width + 24, 25);
         }
     }
 };
@@ -4011,7 +4011,7 @@ jheatmap.components.RowHeaderPanel.prototype.paint = function(context) {
     {
         rowCtx = context;
         offset_x = this.canvas.offset().left;
-        offset_y = this.canvas.offset().top - 112;
+        offset_y = this.canvas.offset().top - 100;
     }
     else
     {

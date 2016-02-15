@@ -21,6 +21,9 @@ gpVisual.HeatMap = function(dataUrl, container) {
         var totalHeight;
 
         hContainer.empty();
+        $("#gpHeatMap_imageRenderCanvas").remove();
+        hContainer.before($("<canvas/>").attr("id", "gpHeatMap_imageRenderCanvas"));
+        $("#gpHeatMap_imageRenderCanvas").hide();
         hContainer.heatmap(
             {
                 data: {
@@ -444,44 +447,33 @@ gpVisual.HeatMap = function(dataUrl, container) {
                 throw new Error("Image is too large to save as png. Please save as SVG instead.");
             }
 
+            //the default is to save as svg
+            //gpHeatmap.size.height = 12 * ;//30000;  // ---> 12 is the default zoom size
+            gpHeatmap.size.height = fullHeight; // / 2;
+            gpHeatmap.size.width = fullWidth;
+
+            context = new C2S(gpHeatmap.size.width + 300, gpHeatmap.size.height + 350);
+
             var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+            hRes.build();
+            hRes.paint(context, true, true);
+
+            var svg = context.getSerializedSvg();
+
+            $("#gpHeatMap_imageRenderCanvas").attr("width", gpHeatmap.size.width + 300);
+            $("#gpHeatMap_imageRenderCanvas").attr("height", gpHeatmap.size.height + 350);
+
+            canvg(document.getElementById('gpHeatMap_imageRenderCanvas'), svg);
+
+            //redraw the image
+            hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
             hRes.build();
             hRes.paint(null, true, true);
 
-            var className = "html2canvasreset";
-            hContainer.addClass(className);
-            var visibleControlPanel = $(".topleft").children(":visible");
-
-            visibleControlPanel.hide();
-            $("#heatmap-details").children().hide();
-            var border = $(".topleft").css("border");
-            $(".topleft").css("border", "none");
-
-            html2canvas(hContainer,
-                {
-                    //height: 2000,
-                    onrendered: function (canvas) {
-                        //$("#heatmap").removeClass(className);
-
-                        // canvas is the final rendered <canvas> element
-                        //var dataURL = canvas.toDataURL();
-                        //window.location = dataURL;
-                        var file = fileName;
-                        canvas.toBlob(function (blob) {
-                            saveAs(blob, file);
-                        });
-
-                        //this is the scrollbars
-                        //$(".borderL").show();
-                        //$(".borderT").show();
-
-                        //$(".topleft").children().show();
-                        visibleControlPanel.show();
-                        $("#heatmap-details").children().show();
-                        $(".topleft").css("border", border);
-                        self.drawHeatMap();
-                    }
-                });
+            var canvas = document.getElementById('gpHeatMap_imageRenderCanvas');
+            canvas.toBlob(function (blob) {
+                saveAs(blob, fileName);
+            });
         }
         else {
             //the default is to save as svg
