@@ -659,6 +659,7 @@ jheatmap.readers.ClsReader.prototype.read = function (result, initialize) {
                 result.values = [];
             }
 
+            var classLabels = [];
             var lines = file.replace('\r', '').split('\n');
             jQuery.each(lines, function (lineCount, line) {
                 line = line.trim();
@@ -666,8 +667,8 @@ jheatmap.readers.ClsReader.prototype.read = function (result, initialize) {
                     if (lineCount == 1 && line.startsWith("#"))
                     {
                         //the is the line that has the class names
-                        //result.header = line.splitCSV(sep);
-                        //result.header = result.header.slice(2);
+                        classLabels = line.splitCSV(sep);
+                        classLabels = classLabels.slice(1);
                     }
 
                     if(lineCount > 1)
@@ -680,7 +681,13 @@ jheatmap.readers.ClsReader.prototype.read = function (result, initialize) {
                                 result.values[v] = [];
                             }
 
-                            result.values[v].push(labelLines[v]);
+                            var classLabel = labelLines[v];
+                            var classNum = parseInt(labelLines[v]);
+                            if(!isNaN(classNum) && classNum < classLabels.length)
+                            {
+                                classLabel = classLabels[classNum];
+                            }
+                            result.values[v].push(classLabel);
                         }
                         //result.values[result.values.length] = labelLines;
                     }
@@ -2762,9 +2769,9 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
             legendContext.textBaseline = 'top';
             legendContext.fillStyle = 'black';
 
-            legendContext.fillText(minValueText, 24, 25);
-            legendContext.fillText(meanValueText, (width/2) + 24, 25);
-            legendContext.fillText(maxValueText, width + 24, 25);
+            legendContext.fillText(minValueText, 24, 27);
+            legendContext.fillText(meanValueText, (width/2) + 24, 27);
+            legendContext.fillText(maxValueText, width + 24, 27);
         }
     }
 };
