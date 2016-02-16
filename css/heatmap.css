@@ -95,6 +95,16 @@ td.border
     margin-top: 8px;
 }
 
+.optionsDialog span
+{
+    font-size: 10px;
+}
+
+#addColor span
+{
+    font-size: 14px;
+}
+
 .optionsDialog input[type=color]
 {
     width: 50px;
@@ -130,6 +140,7 @@ td.border
     list-style-type: none;
     overflow: auto;
     max-height: 180px;
+    padding-left: 8px;
 }
 
 #discreteColorsList button
@@ -141,7 +152,7 @@ td.border
 #discreteColorsList li
 {
     margin: 4px 3px 5px 3px;
-    font-size: 1.4em;
+    font-size: 11px;
     height: 30px;
     width: 95px;
     float: left;
@@ -158,7 +169,7 @@ td.border
     background-color: lightgrey;
 }
 
-#addFsLabelsDiv, #removeFsLabelsDiv
+#removeFsLabelsDiv
 {
     border: 1px solid lightgrey;
 }
@@ -194,5 +205,18 @@ td.border
 .findDialog div
 {
     margin-left: 22px;
+}
+
+#labelFile
+{
+    margin-top: 10px;
+    position: relative;
+    z-index: -999999;
+    font-size: 10px;
+}
+
+#labelDialogDiv
+{
+    margin-bottom: 15px;
 }
 

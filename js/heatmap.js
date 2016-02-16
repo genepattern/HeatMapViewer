@@ -38,7 +38,7 @@ var HeatMapViewer = function()
             event.preventDefault();
 
             var optionsDialog = $("<div/>").addClass("optionsDialog");
-            optionsDialog.append($("<div/>")
+            optionsDialog.append($("<div/>").addClass("space")
                 .append($("<label>Color Scheme: </label>")
                     .append($("<input type='radio' id='relativeScheme' name='cScheme' value='relative'>" +
                         "<label for='relativeScheme'>Row Relative</label>"))
@@ -117,7 +117,7 @@ var HeatMapViewer = function()
             {
                 title: "Options",
                 minWidth: 480,
-                minHeight: 420,
+                minHeight: 400,
                 modal: true,
                 create: function ()
                 {
@@ -325,20 +325,32 @@ var HeatMapViewer = function()
             });
         });
 
+        $("#addLabels").parent().append("<input id='labelFile' type='file'/>");
+        $("#labelFile").change(function()
+        {
+            var fileName = $('#labelFile').get(0).files[0].name;
+            $("#newLabelFileName").empty();
+            $("#newLabelFileName").append("<span>" + fileName + "</span>");
+        });
+
         $("#addLabels").button().click(function (event) {
             var labelDialog = $("<div/>").addClass("labelDialog");
 
-            labelDialog.append($("<div/>")
+            labelDialog.append($("<div/>").attr("id", "labelDialogDiv")
                 .append($("<label>Type of label: </label>")
                     .append($("<span/>")
                         .append($("<label>Samples </label>")
                             .prepend("<input type='radio' id='samplesLabel' name='fsLabels' value='samples' checked='checked'>"))
                         .append($("<label>Features</label>")
                             .prepend("<input type='radio' id='featuresLabel' name='fsLabels' value='features'>"))))
+                    .append($("<div/>").attr("id", "removeFsLabelsDiv"))
                     .append($("<div/>").attr("id", "addFsLabelsDiv")
-                        .append("<h4>Add Label</h4>")
-                        .append("<input id='labelFile' type='file'>"))
-                .append($("<div/>").attr("id", "removeFsLabelsDiv")));
+                        .append($("<button>Add Label</button>").button().click(function()
+                        {
+                            $("#labelFile").click();
+                        }))
+                        .append($("<div/>").attr("id", "newLabelFileName")))
+                );
 
             var showExistingLabels = function(labels)
             {
@@ -376,9 +388,9 @@ var HeatMapViewer = function()
 
                 if(labels.length > 0)
                 {
-                    removeLabelTable.prepend("<tr><td>Name</td><td>Remove</td></tr>");
+                    removeLabelTable.prepend("<tr><td>Label</td><td>Remove</td></tr>");
 
-                    $("#removeFsLabelsDiv").prepend("<h4>Remove Label</h4>");
+                    $("#removeFsLabelsDiv").prepend("<h4>Current Labels</h4>");
                     $("#removeFsLabelsDiv").append(removeLabelTable);
                     $("#removeFsLabelsDiv").show();
                 }
@@ -407,8 +419,8 @@ var HeatMapViewer = function()
             labelDialog.dialog(
             {
                 title: "Add/Remove Label",
-                minWidth: 400,
-                minHeight: 270,
+                minWidth: 350,
+                minHeight: 250,
                 modal: true,
                 create: function ()
                 {
@@ -433,6 +445,8 @@ var HeatMapViewer = function()
                             {
                                 heatMap.addSampleLabels(fileUrl,file.name);
                             }
+
+                            $('#labelFile').val("");
                         }
 
                         var removeLabels = $(this).data("removeLabels");
