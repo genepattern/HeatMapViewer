@@ -187,39 +187,77 @@ BrowserDetect.init();
  ...
  */
 
-(function () {
+(function ()
+{
+    Object.defineProperty(Array.prototype, 'remove', {
+        value: function () {
+            this.splice(this.indexOf(v) == -1 ? this.length : this.indexOf(v), 1);
+        },
+        enumerable: false
+    });
 
-    Array.prototype.remove = function(v) {
-        this.splice(this.indexOf(v) == -1 ? this.length : this.indexOf(v), 1);
-    }
+    /*Array.prototype.remove = function(v) {
+     this.splice(this.indexOf(v) == -1 ? this.length : this.indexOf(v), 1);
+     }*/
 
-    Array.prototype.stableSort = function (compare) {
-        // I would love some real feature recognition. Problem is that an unstable algorithm sometimes/often gives the same result as an unstable algorithm.
-        return (BrowserDetect.browser == "Chrome") ? this.mergeSort(compare) : this.sort(compare);
+    Object.defineProperty(Array.prototype, 'stableSort', {
+        value: function (compare) {
+            return (BrowserDetect.browser == "Chrome") ? this.mergeSort(compare) : this.sort(compare);
+        },
+        enumerable: false
+    });
 
-    }
+    /*Array.prototype.stableSort = function (compare) {
+     // I would love some real feature recognition. Problem is that an unstable algorithm sometimes/often gives the same result as an unstable algorithm.
+     return (BrowserDetect.browser == "Chrome") ? this.mergeSort(compare) : this.sort(compare);
+     }*/
 
-    if (!Array.mergeSort) {
-        Array.prototype.mergeSort = function (compare, token) {
-            compare = compare || function (a, b) {
-                return a > b ? 1 : (a < b ? -1 : 0);
-            };
-            if (this.length > 1) {
-                // Split and sort both parts
-                var right = this.splice(Math.floor(this.length / 2)).mergeSort(compare);
-                var left = this.splice(0).mergeSort(compare); // 'this' is now empty.
+    if (!Array.mergeSort)
+    {
+        Object.defineProperty(Array.prototype, 'mergeSort', {
+            value: function (compare, token) {
+                compare = compare || function (a, b) {
+                    return a > b ? 1 : (a < b ? -1 : 0);
+                };
+                if (this.length > 1) {
+                    // Split and sort both parts
+                    var right = this.splice(Math.floor(this.length / 2)).mergeSort(compare);
+                    var left = this.splice(0).mergeSort(compare); // 'this' is now empty.
 
-                // Merge parts together
-                while (left.length > 0 || right.length > 0) {
-                    this.push(
-                        right.length === 0 ? left.shift()
-                            : left.length === 0 ? right.shift()
-                            : compare(left[0], right[0]) > 0 ? right.shift()
-                            : left.shift());
+                    // Merge parts together
+                    while (left.length > 0 || right.length > 0) {
+                        this.push(
+                                right.length === 0 ? left.shift()
+                                : left.length === 0 ? right.shift()
+                                : compare(left[0], right[0]) > 0 ? right.shift()
+                                : left.shift());
+                    }
                 }
-            }
-            return this;
-        }
+                return this;
+            },
+            enumerable: false
+        });
+
+        /* Array.prototype.mergeSort = function (compare, token) {
+         compare = compare || function (a, b) {
+         return a > b ? 1 : (a < b ? -1 : 0);
+         };
+         if (this.length > 1) {
+         // Split and sort both parts
+         var right = this.splice(Math.floor(this.length / 2)).mergeSort(compare);
+         var left = this.splice(0).mergeSort(compare); // 'this' is now empty.
+
+         // Merge parts together
+         while (left.length > 0 || right.length > 0) {
+         this.push(
+         right.length === 0 ? left.shift()
+         : left.length === 0 ? right.shift()
+         : compare(left[0], right[0]) > 0 ? right.shift()
+         : left.shift());
+         }
+         }
+         return this;
+         }*/
     }
 
     String.prototype.splitCSV = function (sep) {
@@ -240,9 +278,7 @@ BrowserDetect.init();
     String.prototype.startsWith = function (str) {
         return (this.match("^" + str) == str);
     };
-
 })();
-
 
 
 /**
