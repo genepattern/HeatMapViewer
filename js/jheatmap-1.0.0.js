@@ -197,8 +197,8 @@ BrowserDetect.init();
     });
 
     /*Array.prototype.remove = function(v) {
-     this.splice(this.indexOf(v) == -1 ? this.length : this.indexOf(v), 1);
-     }*/
+        this.splice(this.indexOf(v) == -1 ? this.length : this.indexOf(v), 1);
+    }*/
 
     Object.defineProperty(Array.prototype, 'stableSort', {
         value: function (compare) {
@@ -208,13 +208,13 @@ BrowserDetect.init();
     });
 
     /*Array.prototype.stableSort = function (compare) {
-     // I would love some real feature recognition. Problem is that an unstable algorithm sometimes/often gives the same result as an unstable algorithm.
-     return (BrowserDetect.browser == "Chrome") ? this.mergeSort(compare) : this.sort(compare);
-     }*/
+        // I would love some real feature recognition. Problem is that an unstable algorithm sometimes/often gives the same result as an unstable algorithm.
+        return (BrowserDetect.browser == "Chrome") ? this.mergeSort(compare) : this.sort(compare);
+    }*/
 
     if (!Array.mergeSort)
     {
-        Object.defineProperty(Array.prototype, 'mergeSort', {
+       Object.defineProperty(Array.prototype, 'mergeSort', {
             value: function (compare, token) {
                 compare = compare || function (a, b) {
                     return a > b ? 1 : (a < b ? -1 : 0);
@@ -279,6 +279,7 @@ BrowserDetect.init();
         return (this.match("^" + str) == str);
     };
 })();
+
 
 
 /**
@@ -2677,8 +2678,6 @@ jheatmap.components.CellSelector = function(drawer, heatmap, container) {
 jheatmap.components.LegendPanel = function(drawer, heatmap)
 {
     this.heatmap = heatmap;
-    this.visible = heatmap.controls.showLegend;
-
     // Create markup
     this.markup = $("<tr >");
     this.width = 360;
@@ -2692,20 +2691,18 @@ jheatmap.components.LegendPanel = function(drawer, heatmap)
 
 jheatmap.components.LegendPanel.prototype.paint = function(context)
 {
-    if (this.visible)
-    {
-        var legendContext = this.bodyCanvas.get()[0].getContext('2d');
+    var legendContext = this.bodyCanvas.get()[0].getContext('2d');
 
-        if(context !== undefined && context !== null)
-        {
-            legendContext = context;
-        }
-        else
-        {
-            legendContext.clearRect(0, 0, legendContext.canvas.width, legendContext.canvas.height);
-            legendContext.fillStyle = "white";
-            legendContext.fillRect(0, 0, legendContext.canvas.width, legendContext.canvas.height);
-        }
+    if(context !== undefined && context !== null)
+    {
+        legendContext = context;
+    }
+    else
+    {
+        legendContext.clearRect(0, 0, legendContext.canvas.width, legendContext.canvas.height);
+        legendContext.fillStyle = "white";
+        legendContext.fillRect(0, 0, legendContext.canvas.width, legendContext.canvas.height);
+    }
 
     var width = 300;
     var height = 24;
@@ -2789,11 +2786,9 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
             }
         }
     }
-    else
-    {
+    else {
         var gradient = legendContext.createLinearGradient(24, 0, width, height);
-        for (var i = 0, length = fractions.length; i < length; i++)
-        {
+        for (var i = 0, length = fractions.length; i < length; i++) {
             gradient.addColorStop(fractions[i], colors[i]);
         }
 
@@ -2805,7 +2800,7 @@ jheatmap.components.LegendPanel.prototype.paint = function(context)
         legendContext.fillStyle = 'black';
 
         legendContext.fillText(minValueText, 24, 50);
-        legendContext.fillText(meanValueText, (width/2) + 24, 50);
+        legendContext.fillText(meanValueText, (width / 2) + 24, 50);
         legendContext.fillText(maxValueText, width + 24, 50);
     }
 };
