@@ -15,7 +15,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
     };
     var self = this;
 
-    this.drawHeatMap = function ()
+    this.drawHeatMap = function (options)
     {
         var bodyWidth = hContainer.width();
         var totalHeight;
@@ -39,6 +39,12 @@ gpVisual.HeatMap = function(dataUrl, container) {
                     //heatmap.controls.columnSelector = false;
                     heatmap.controls.cellSelector = false;
 
+                    heatmap.controls.legend = false;
+
+                    if(options !== undefined && options.showLegend !== undefined)
+                    {
+                        heatmap.controls.legend = options.showLegend;
+                    }
                     //height of the columns
                     heatmap.cols.labelSize = 150;
 
