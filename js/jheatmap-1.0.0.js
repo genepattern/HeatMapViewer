@@ -399,7 +399,8 @@ jheatmap.readers.FeatureLabelsReader.prototype.read = function (result, initiali
             var lines = file.replace('\r', '').split('\n');
             jQuery.each(lines, function (lineCount, line) {
                 if (line.length > 0 && !line.startsWith("#")) {
-                    if (lineCount == 0) {
+                    if (lineCount == 0)
+                    {
                         result.header = result.header.concat(line.splitCSV(sep));
                     }
                     else
@@ -4812,7 +4813,7 @@ jheatmap.HeatmapDrawer = function (heatmap) {
     /**
      * Paint the heatmap.
      */
-    this.paint = function (context, hideScrollBars, showLegend) {
+    this.paint = function (context, hideScrollBars) {
 
         // Minimum zooms
         var mcz = Math.max(3, Math.round(heatmap.size.width / heatmap.cols.order.length));
