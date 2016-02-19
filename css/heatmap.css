@@ -163,15 +163,9 @@ td.border
     margin-top: 10px;
 }
 
-.labelDialog h4
+#editLabelColors
 {
-    margin-bottom: 6px;
-    background-color: lightgrey;
-}
-
-#removeFsLabelsDiv
-{
-    border: 1px solid lightgrey;
+    font-size: 80%;
 }
 
 .labelDialog
@@ -218,5 +212,37 @@ td.border
 #labelDialogDiv
 {
     margin-bottom: 15px;
+}
+
+#labelTable
+{
+    border-collapse: collapse;
+}
+
+#labelTable th, #labelTable td
+{
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+
+#labelTable th
+{
+    background-color: lightgrey;
+}
+
+#labelDetailsTable
+{
+    border-collapse: collapse;
+    width: 90%;
+}
+
+#labelDetailsTable td
+{
+    padding: 2px;
+    /*border-bottom: 1px solid #ddd;*/
 }
 

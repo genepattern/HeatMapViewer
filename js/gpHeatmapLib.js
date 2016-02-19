@@ -166,9 +166,52 @@ gpVisual.HeatMap = function(dataUrl, container) {
         return  gpHeatmap.rows.header.length > 1 ? gpHeatmap.rows.header.slice(2) : [];
     };
 
+    this.updateFeatureLabel = function(label, rowLabelDetails)
+    {
+        var rowHeaders = gpHeatmap.rows.header.length > 1 ? gpHeatmap.rows.header : [];
+
+        //find the index of the label
+        var index = $.inArray(label, rowHeaders);
+        if(index != -1)
+        {
+            if(gpHeatmap.rows.decorators !== undefined && index < gpHeatmap.rows.decorators.length)
+            {
+                var details = gpHeatmap.rows.decorators[index].colors;
+
+                var rowLabelKeys = Object.keys(rowLabelDetails);
+                for(var i=0;i<rowLabelKeys.length;i++)
+                {
+                    details[rowLabelKeys[i]] = rowLabelDetails[rowLabelKeys[i]];
+                }
+
+                self.redrawHeatMap();
+            }
+        }
+    };
+
+    this.getFeatureLabelDetails = function(label)
+    {
+        var rowHeaders = gpHeatmap.rows.header.length > 1 ? gpHeatmap.rows.header : [];
+
+        var details = {};
+        //find the index of the label
+        var index = $.inArray(label, rowHeaders);
+        if(index != -1)
+        {
+            if(gpHeatmap.rows.decorators !== undefined && index < gpHeatmap.rows.decorators.length)
+            {
+                details = gpHeatmap.rows.decorators[index].colors;
+            }
+        }
+
+        return details;
+    };
+
+
     this.addFeatureLabels = function(featureLabelsUrl)
     {
         var currentFeatureLabels = gpHeatmap.rows.header.slice();
+
         //add class labels
         var featureLabelsAdded = function()
         {
@@ -230,6 +273,60 @@ gpVisual.HeatMap = function(dataUrl, container) {
         return  gpHeatmap.cols.header.length > 1 ? gpHeatmap.cols.header.slice(1) : [];
     };
 
+    this.updateSampleLabel = function(label, sampleLabelDetails)
+    {
+        var colHeaders = gpHeatmap.cols.header.length > 1 ? gpHeatmap.cols.header : [];
+
+        //find the index of the label
+        var index = $.inArray(label, colHeaders);
+        if(index != -1)
+        {
+            if(gpHeatmap.cols.decorators !== undefined && index < gpHeatmap.cols.decorators.length)
+            {
+                var details = gpHeatmap.cols.decorators[index].colors;
+
+                var sampleLabelKeys = Object.keys(sampleLabelDetails);
+                for(var i=0;i<sampleLabelKeys.length;i++)
+                {
+                    details[sampleLabelKeys[i]] = sampleLabelDetails[sampleLabelKeys[i]];
+                }
+
+                self.redrawHeatMap();
+            }
+        }
+    };
+
+    this.getSampleLabelDetails = function(label)
+    {
+        var colHeaders = gpHeatmap.cols.header.length > 1 ? gpHeatmap.cols.header : [];
+
+        var details = {};
+        //find the index of the label
+        var index = $.inArray(label, colHeaders);
+        if(index != -1)
+        {
+            if(gpHeatmap.cols.decorators !== undefined && index < gpHeatmap.cols.decorators.length)
+            {
+                details = gpHeatmap.cols.decorators[index].colors;
+            }
+        }
+
+        return details;
+    };
+
+    this.redrawHeatMap = function(showScrollBars)
+    {
+        var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+        hRes.build();
+
+        if(showScrollBars == undefined)
+        {
+            showScrollBars = true;
+        }
+
+        hRes.paint(null, showScrollBars);
+    };
+
     this.addSampleLabels = function(clsUrl, label)
     {
         //add class labels
@@ -245,9 +342,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
             gpHeatmap.cols.decorators[labelIndex] = new jheatmap.decorators.CategoricalRandom();
             gpHeatmap.cols.annotations.push(labelIndex);
 
-            var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
-            hRes.build();
-            hRes.paint(null, true, true);
+            self.redrawHeatMap(true);
         };
 
         var addCls = new jheatmap.readers.ClsReader(

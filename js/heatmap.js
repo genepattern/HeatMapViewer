@@ -352,26 +352,22 @@ var HeatMapViewer = function()
                         .append($("<div/>").attr("id", "newLabelFileName")))
                 );
 
-            var showExistingLabels = function(labels)
-            {
-                if(labels == undefined)
-                {
+            var showExistingLabels = function(labels) {
+                if (labels == undefined) {
                     return;
                 }
 
                 $("#removeFsLabelsDiv").empty();
 
-                var removeLabelTable = $("<table/>");
-                for(var f = 0; f < labels.length; f++)
-                {
+                var removeLabelTable = $("<table/>").attr("id", "labelTable");
+                removeLabelTable.append("<th colspan='3'>Current Labels</th>");
+                for (var f = 0; f < labels.length; f++) {
                     var removeLabelTr = $("<tr/>");
                     removeLabelTr.append("<td>" + labels[f] + "</td>");
 
-                    var delCheckbox = $("<input type='checkbox'>").click(function()
-                    {
+                    var delCheckbox = $("<input type='checkbox'>").click(function () {
                         var removeLabels = $(this).parents(".labelDialog").data("removeLabels");
-                        if(removeLabels == undefined)
-                        {
+                        if (removeLabels == undefined) {
                             removeLabels = [];
                         }
 
@@ -383,85 +379,161 @@ var HeatMapViewer = function()
                     delCheckbox.data("label", labels[f]);
                     $("<td/>").append(delCheckbox).appendTo(removeLabelTr);
 
+                    var editColors = $("<button>edit</button>").attr("id", "editLabelColors");
+                    editColors.data("label", labels[f]);
+                    editColors.button().click(function () {
+                        var label = $(this).data("label");
+
+                        var labelType = $("input[name='fsLabels']:checked").val();
+
+                        var labelDetails;
+                        if (labelType === "features")
+                        {
+                            labelDetails = heatMap.getFeatureLabelDetails(label);
+                        }
+                        else
+                        {
+                            labelDetails = heatMap.getSampleLabelDetails(label);
+                        }
+
+                        var labelDetailsSize = labelDetails != undefined ? Object.keys(labelDetails).length: 0;
+
+                        if (labelDetailsSize == 0)
+                        {
+                            showErrorMessage("Error: no labels to edit", "Edit Labels Error");
+                            return;
+                        }
+
+                        var labelDetailsDialog = $("<div/>").addClass("labelDialog");
+
+                        labelDetailsDialog.append($("<table/>").attr("id", "labelDetailsTable"));
+
+                        labelDetailsDialog.dialog(
+                        {
+                            title: "Edit Label",
+                            minWidth: 290,
+                            minHeight: 210,
+                            modal: true,
+                            create: function()
+                            {
+                                $(this).prepend("<div>Editing: " + label + "</div>");
+                                for (var labelInfoKey in labelDetails) {
+                                    if (labelDetails.hasOwnProperty(labelInfoKey)) {
+                                        var color = labelDetails[labelInfoKey];
+
+                                        var tr = $("<tr/>");
+                                        $("#labelDetailsTable").append(tr);
+
+                                        $("<td/>").append(labelInfoKey).appendTo(tr);
+
+                                        var colorInput = $('<input type="text" class="labelDetailsColor" value="#000000"/>');
+                                        $("<td/>").append(colorInput).appendTo(tr);
+                                        colorInput.spectrum();
+                                        colorInput.spectrum("set", color);
+                                        colorInput.data("labelItemName", labelInfoKey);
+                                    }
+                                }
+                            },
+                            buttons: {
+                                OK: function ()
+                                {
+                                    var newLabelColors = {};
+                                    $(".labelDetailsColor").each(function()
+                                    {
+                                        var labelItemName = $(this).data('labelItemName');
+                                        if(labelItemName !== undefined)
+                                        {
+                                            newLabelColors[labelItemName]= $(this).spectrum("get").toHexString();
+                                        }
+                                    });
+
+                                    if(labelType == "features")
+                                    {
+                                        heatMap.updateFeatureLabel(label, newLabelColors);
+
+                                    }
+                                    else
+                                    {
+                                        heatMap.updateSampleLabel(label, newLabelColors);
+                                    }
+
+                                    $(this).dialog("destroy");
+                                },
+                                Cancel: function()
+                                {
+                                    $(this).dialog("destroy");
+                                }
+                            }
+                        });
+
+                    });
+
+                    $("<td/>").append(editColors).appendTo(removeLabelTr);
                     removeLabelTable.append(removeLabelTr);
-                }
 
-                if(labels.length > 0)
-                {
-                    removeLabelTable.prepend("<tr><td>Label</td><td>Remove</td></tr>");
 
-                    $("#removeFsLabelsDiv").prepend("<h4>Current Labels</h4>");
-                    $("#removeFsLabelsDiv").append(removeLabelTable);
-                    $("#removeFsLabelsDiv").show();
-                }
-                else
-                {
-                    $("#removeFsLabelsDiv").hide();
+                    if (labels.length > 0) {
+                        removeLabelTable.prepend("<tr><td>Label</td><td>Remove</td><td></td></tr>");
+                        //$("#removeFsLabelsDiv").prepend("<h4>Current Labels</h4>");
+                        $("#removeFsLabelsDiv").append(removeLabelTable);
+                        $("#removeFsLabelsDiv").show();
+                    }
+                    else {
+                        $("#removeFsLabelsDiv").hide();
+                    }
                 }
             };
 
-            labelDialog.find("#featuresLabel").click(function()
-            {
+            labelDialog.find("#featuresLabel").click(function () {
                 //Ignore the Name and Description Labels
                 var fLabels = heatMap.getFeatureLabels();
-                if(fLabels != undefined && fLabels.length > 1)
-                {
-                   // fLabels = fLabels.splice(2);
+                if (fLabels != undefined && fLabels.length > 1) {
+                    // fLabels = fLabels.splice(2);
                 }
                 showExistingLabels(fLabels);
             });
 
-            labelDialog.find("#samplesLabel").click(function()
-            {
+            labelDialog.find("#samplesLabel").click(function () {
                 showExistingLabels(heatMap.getSampleLabels());
             });
 
             labelDialog.dialog(
             {
-                title: "Add/Remove Label",
+                title: "Add/Edit Labels",
                 minWidth: 350,
                 minHeight: 250,
                 modal: true,
-                create: function ()
-                {
+                create: function () {
                     $("#samplesLabel").click();
                 },
                 buttons: {
-                    OK: function ()
-                    {
-                        if($('#labelFile').get(0).files.length > 0)
-                        {
+                    OK: function () {
+                        if ($('#labelFile').get(0).files.length > 0) {
                             var file = $('#labelFile').get(0).files[0];
 
                             var fileUrl = URL.createObjectURL(file);
 
                             var labelType = $("input[name='fsLabels']:checked").val();
 
-                            if(labelType === "features")
-                            {
+                            if (labelType === "features") {
                                 heatMap.addFeatureLabels(fileUrl);
                             }
-                            else
-                            {
-                                heatMap.addSampleLabels(fileUrl,file.name);
+                            else {
+                                heatMap.addSampleLabels(fileUrl, file.name);
                             }
 
                             $('#labelFile').val("");
                         }
 
                         var removeLabels = $(this).data("removeLabels");
-                        if(removeLabels !== undefined)
-                        {
-                            for(var l=0;l<removeLabels.length;l++)
-                            {
+                        if (removeLabels !== undefined) {
+                            for (var l = 0; l < removeLabels.length; l++) {
                                 //If there are existing labels
                                 var typeOfLabel = $("input[name='fsLabels']:checked").val();
-                                if(typeOfLabel === "features")
-                                {
+                                if (typeOfLabel === "features") {
                                     heatMap.removeFeatureLabels(removeLabels[l]);
                                 }
-                                else
-                                {
+                                else {
                                     heatMap.removeSampleLabels(removeLabels[l]);
                                 }
                             }
