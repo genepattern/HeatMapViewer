@@ -359,7 +359,7 @@ jheatmap.utils.reindexField = function(value, headers) {
  * A text separated value file table reader
  *
  * @example
- * new jheatmap.readers.AnnotationReader({ url: "filename.tsv" });
+ * new jheatmap.readers.FeatureLabelsReader({ url: "filename.txt" });
  *
  * @class
  * @param {string}  p.url                 File url
@@ -396,7 +396,10 @@ jheatmap.readers.FeatureLabelsReader.prototype.read = function (result, initiali
             {
                 result.header = [];
             }
+
             var lines = file.replace('\r', '').split('\n');
+            //var lines = file.split(/\r|\n/);
+
             jQuery.each(lines, function (lineCount, line) {
                 if (line.length > 0 && !line.startsWith("#")) {
                     if (lineCount == 0)
@@ -2909,10 +2912,11 @@ jheatmap.components.ColumnAnnotationPanel.prototype.paint = function(context, of
         var colAnnHeaderCtx = this.canvasHeader.get()[0].getContext('2d');
 
         var offset_x = 0;
+        var colAnnHeaderWidth = colAnnHeaderCtx.canvas.width;
         if(context !== undefined && context !== null)
         {
             colAnnHeaderCtx = context;
-            offset_x = this.canvasHeader.offset().left - 5;
+            offset_x = this.canvasHeader.offset().left - 2;
             //offset_y = this.canvasHeader.offset().top;
         }
         else
@@ -2928,11 +2932,11 @@ jheatmap.components.ColumnAnnotationPanel.prototype.paint = function(context, of
 
         for (i = 0; i < heatmap.cols.annotations.length; i++) {
             var value = heatmap.cols.header[heatmap.cols.annotations[i]];
-            colAnnHeaderCtx.fillText(value, (colAnnHeaderCtx.canvas.width - 5 - textSpacing), offset_y + ((i * heatmap.cols.annotationSize) + (heatmap.cols.annotationSize / 2)));
+            colAnnHeaderCtx.fillText(value, offset_x + (colAnnHeaderWidth - 5 - textSpacing), offset_y + ((i * heatmap.cols.annotationSize) + (heatmap.cols.annotationSize / 2)));
 
             // Order mark
             colAnnHeaderCtx.save();
-            colAnnHeaderCtx.translate((colAnnHeaderCtx.canvas.width - 4),  offset_y + ((Math.round((i * heatmap.cols.annotationSize) + (heatmap.cols.annotationSize / 2)))));
+            colAnnHeaderCtx.translate(offset_x + (colAnnHeaderWidth - 4),  offset_y + ((Math.round((i * heatmap.cols.annotationSize) + (heatmap.cols.annotationSize / 2)))));
             colAnnHeaderCtx.rotate(-Math.PI / 4);
             if (heatmap.cols.sorter.field == heatmap.cols.annotations[i]) {
                 jheatmap.components.OrderSymbol(colAnnHeaderCtx, heatmap.cols.sorter.asc);
@@ -3715,8 +3719,8 @@ jheatmap.components.RowAnnotationPanel.prototype.paint = function(context, offse
         if(context !== undefined && context !== null)
         {
             annRowHeadCtx = context;
-            offset_x = this.headerCanvas.offset().left;
-            //offset_y = this.canvasHeader.offset().top;
+            offset_x = this.headerCanvas.offset().left - 6;
+            offset_y = offset_y + 10;
         }
         else
         {
@@ -3769,7 +3773,7 @@ jheatmap.components.RowAnnotationPanel.prototype.paint = function(context, offse
         if(context !== undefined && context !== null)
         {
             rowsAnnValuesCtx = context;
-            offset_x = this.bodyCanvas.offset().left;
+            offset_x = this.bodyCanvas.offset().left - 6;
             //offset_y = this.bodyCanvas.offset().top;
         }
         else
@@ -4879,20 +4883,16 @@ jheatmap.HeatmapDrawer = function (heatmap) {
 
         var offsetY = legendPanel.height;
 
-        console.log("offset y " + offsetY);
-
         // Column headers panel
         columnHeaderPanel.paint(context, offsetY);
 
         offsetY = offsetY + columnHeaderPanel.canvas.height();
-
 
         // Rows headers
         rowHeaderPanel.paint(context, offsetY + columnAnnotationPanel.canvasBody.height());
 
         // Row annotations
         rowAnnotationPanel.paint(context, offsetY);
-
 
         // Columns annotations
         columnAnnotationPanel.paint(context, offsetY);
@@ -4902,9 +4902,7 @@ jheatmap.HeatmapDrawer = function (heatmap) {
         // Cells
         cellsBodyPanel.paint(context, offsetY);
 
-
         //Heatmap Legend
-
         legendPanel.paint(context);
 
         // Vertical scroll
