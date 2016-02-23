@@ -309,14 +309,33 @@ var HeatMapViewer = function()
                 create: function () {
                     //convert to a jQuery UI select menu
                     $(this).find(".imageFileFormat").selectmenu();
+
+                    //var loadingImage = $('<div id="loadingImage"><img src="css/images/loading.gif"/></div>');
+
+                    //var loadingImage = $('<div id="progressbar"></div>');
+
+                    //$('.saveImageDialog').prepend(loadingImage);
+
+                    //$("#loadingImage").hide();
                 },
                 buttons: {
                     OK: function () {
                         var imageFileName = $(".imageFileName").val();
                         var imageFormat = $(".imageFileFormat").val();
 
-                        heatMap.saveImage(imageFileName, imageFormat);
-                        $(this).dialog("destroy");
+                        //$("#loadingImage").show();
+
+                        /*$( "#progressbar" ).progressbar({
+                            value: false
+                        });*/
+
+                        var success = heatMap.saveImage(imageFileName, imageFormat);
+                        // $("#loadingImage").remove();
+
+                        if(success)
+                        {
+                            $(this).dialog("destroy");
+                        }
                     },
                     Cancel: function () {
                         $(this).dialog("destroy");

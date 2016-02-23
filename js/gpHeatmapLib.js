@@ -545,7 +545,10 @@ gpVisual.HeatMap = function(dataUrl, container) {
             //limit on size of heatmap if saving as PNG
             if (fullHeight * fullWidth > 43000000) {
                 alert("Image is too large to save as png. Please save as SVG instead.");
-                throw new Error("Image is too large to save as png. Please save as SVG instead.");
+                //throw new Error("Image is too large to save as png. Please save as SVG instead.");
+
+                gpHeatmap.size.height = originalHeight;
+                return false;
             }
 
             //the default is to save as svg
@@ -604,5 +607,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
             hRes.build();
             hRes.paint(null, false);
         }
+
+        return true;
     };
 };
