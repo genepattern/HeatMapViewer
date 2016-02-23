@@ -284,6 +284,14 @@ var HeatMapViewer = function()
             }
         });
 
+        $("#reload").button().click(function(event)
+        {
+            heatMap = new gpVisual.HeatMap(datasetUrl, $("#heatmap"));
+            heatMap.drawHeatMap({
+                showLegend: true
+            });
+        });
+
         $("#saveImage").button().click(function (event) {
             event.preventDefault();
 
