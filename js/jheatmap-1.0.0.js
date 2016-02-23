@@ -2555,7 +2555,7 @@ jheatmap.components.CellBodyPanel = function(drawer, heatmap) {
 
 };
 
-jheatmap.components.CellBodyPanel.prototype.paint = function(context)
+jheatmap.components.CellBodyPanel.prototype.paint = function(context, offsetY)
 {
     var heatmap = this.heatmap;
     var rz = heatmap.rows.zoom;
@@ -2567,18 +2567,18 @@ jheatmap.components.CellBodyPanel.prototype.paint = function(context)
     var endCol = heatmap.offset.right;
 
     var offset_x = 0;
-    var offset_y = 0;
-
+    var offset_y = offsetY;
     var cellCtx = this.canvas.get()[0].getContext('2d');
     if(context !== undefined && context !== null)
     {
         cellCtx = context;
 
         offset_x = this.canvas.offset().left;
-        offset_y = this.canvas.offset().top - 100;
+        //offset_y = this.canvas.offset().top - 100;
     }
     else
     {
+        offset_y = 0;
         cellCtx.clearRect(0, 0, cellCtx.canvas.width, cellCtx.canvas.height);
     }
 
@@ -2682,7 +2682,7 @@ jheatmap.components.LegendPanel = function(drawer, heatmap)
     // Create markup
     this.markup = $("<tr >");
     this.width = 360;
-    this.height = 45;
+    this.height = 70;
 
     var legendCell = $("<td colspan='2'>");
     this.bodyCanvas = $("<canvas width='" + (heatmap.size.width + heatmap.rows.labelSize + 16) + "'" + " height='" + this.height +"'" + "></canvas>");
@@ -2896,7 +2896,7 @@ jheatmap.components.ColumnAnnotationPanel = function(drawer, heatmap)
     });
 };
 
-jheatmap.components.ColumnAnnotationPanel.prototype.paint = function(context) {
+jheatmap.components.ColumnAnnotationPanel.prototype.paint = function(context, offset_y) {
 
     if (this.visible) {
 
@@ -2908,12 +2908,16 @@ jheatmap.components.ColumnAnnotationPanel.prototype.paint = function(context) {
 
         var colAnnHeaderCtx = this.canvasHeader.get()[0].getContext('2d');
 
+        var offset_x = 0;
         if(context !== undefined && context !== null)
         {
             colAnnHeaderCtx = context;
+            offset_x = this.canvasHeader.offset().left - 5;
+            //offset_y = this.canvasHeader.offset().top;
         }
         else
         {
+            offset_y = 0;
             colAnnHeaderCtx.clearRect(0, 0, colAnnHeaderCtx.canvas.width, colAnnHeaderCtx.canvas.height);
         }
 
@@ -2924,11 +2928,11 @@ jheatmap.components.ColumnAnnotationPanel.prototype.paint = function(context) {
 
         for (i = 0; i < heatmap.cols.annotations.length; i++) {
             var value = heatmap.cols.header[heatmap.cols.annotations[i]];
-            colAnnHeaderCtx.fillText(value, colAnnHeaderCtx.canvas.width - 5 - textSpacing, (i * heatmap.cols.annotationSize) + (heatmap.cols.annotationSize / 2));
+            colAnnHeaderCtx.fillText(value, (colAnnHeaderCtx.canvas.width - 5 - textSpacing), offset_y + ((i * heatmap.cols.annotationSize) + (heatmap.cols.annotationSize / 2)));
 
             // Order mark
             colAnnHeaderCtx.save();
-            colAnnHeaderCtx.translate(colAnnHeaderCtx.canvas.width - 4, Math.round((i * heatmap.cols.annotationSize) + (heatmap.cols.annotationSize / 2)));
+            colAnnHeaderCtx.translate((colAnnHeaderCtx.canvas.width - 4),  offset_y + ((Math.round((i * heatmap.cols.annotationSize) + (heatmap.cols.annotationSize / 2)))));
             colAnnHeaderCtx.rotate(-Math.PI / 4);
             if (heatmap.cols.sorter.field == heatmap.cols.annotations[i]) {
                 jheatmap.components.OrderSymbol(colAnnHeaderCtx, heatmap.cols.sorter.asc);
@@ -2947,9 +2951,12 @@ jheatmap.components.ColumnAnnotationPanel.prototype.paint = function(context) {
         if(context !== undefined && context !== null)
         {
             colAnnValuesCtx = context;
+            offset_x = this.canvasBody.offset().left - 5;
+            //offset_y = this.canvasBody.offset().top;
         }
         else
         {
+            offset_y = 0;
             colAnnValuesCtx.clearRect(0, 0, colAnnValuesCtx.canvas.width, colAnnValuesCtx.canvas.height);
         }
 
@@ -2962,7 +2969,7 @@ jheatmap.components.ColumnAnnotationPanel.prototype.paint = function(context) {
                 if (value != null) {
                     var color = heatmap.cols.decorators[field].toColor(value);
                     colAnnValuesCtx.fillStyle = color;
-                    colAnnValuesCtx.fillRect((col - startCol) * cz, i * heatmap.cols.annotationSize, cz, heatmap.cols.annotationSize);
+                    colAnnValuesCtx.fillRect(offset_x + ((col - startCol) * cz), offset_y + (i * heatmap.cols.annotationSize), cz, heatmap.cols.annotationSize);
                 }
             }
         }
@@ -2970,7 +2977,7 @@ jheatmap.components.ColumnAnnotationPanel.prototype.paint = function(context) {
         for (var col = startCol; col < endCol; col++) {
             if ($.inArray(heatmap.cols.order[col], heatmap.cols.selected) > -1) {
                 colAnnValuesCtx.fillStyle = "rgba(0,0,0,0.1)";
-                colAnnValuesCtx.fillRect((col - startCol) * cz, 0, cz, heatmap.cols.annotations.length * heatmap.cols.annotationSize);
+                colAnnValuesCtx.fillRect((offset_x + (col - startCol) * cz), offset_y + 0, cz, heatmap.cols.annotations.length * heatmap.cols.annotationSize);
                 colAnnValuesCtx.fillStyle = "white";
             }
         }
@@ -3229,7 +3236,7 @@ jheatmap.components.ColumnHeaderPanel = function(drawer, heatmap) {
      });
 };
 
-jheatmap.components.ColumnHeaderPanel.prototype.paint = function(context) {
+jheatmap.components.ColumnHeaderPanel.prototype.paint = function(context, offset_y) {
 
     var heatmap = this.heatmap;
 
@@ -3242,16 +3249,16 @@ jheatmap.components.ColumnHeaderPanel.prototype.paint = function(context) {
     var colCtx = canvas.getContext('2d');
 
     var offset_x = 0;
-    var offset_y = 0;
 
     if(context !== undefined && context !== null)
     {
         colCtx = context;
         offset_x = this.canvas.offset().left;
-        offset_y = this.canvas.offset().top;
+        //offset_y = this.canvas.offset().top;
     }
     else
     {
+        offset_y = 0;
         colCtx.clearRect(0, 0, colCtx.canvas.width, colCtx.canvas.height);
     }
 
@@ -3273,14 +3280,14 @@ jheatmap.components.ColumnHeaderPanel.prototype.paint = function(context) {
     for (var c = startCol; c < endCol; c++) {
         var value = heatmap.cols.getValue(c, heatmap.cols.selectedValue);
         colCtx.save();
-        colCtx.translate((c - startCol) * cz + (cz / 2) + offset_x, heatmap.cols.labelSize - 5);
+        colCtx.translate((c - startCol) * cz + (cz / 2) + offset_x, (heatmap.cols.labelSize - 5) + offset_y);
         colCtx.rotate(Math.PI / 2);
         colCtx.fillText(value, -textSpacing, 0);
         colCtx.restore();
 
         // Order mark
         colCtx.save();
-        colCtx.translate(Math.round(((c - startCol) * cz) + (cz / 2)) + offset_x, heatmap.cols.labelSize - 4)
+        colCtx.translate(Math.round(((c - startCol) * cz) + (cz / 2)) + offset_x, (heatmap.cols.labelSize - 4) + offset_y);
         colCtx.rotate(Math.PI / 4);
         if (    (heatmap.rows.sorter.field == heatmap.cells.selectedValue) &&
             ($.inArray(heatmap.cols.order[c], heatmap.rows.sorter.indices) > -1)
@@ -3692,7 +3699,7 @@ jheatmap.components.RowAnnotationPanel = function(drawer, heatmap) {
 
 };
 
-jheatmap.components.RowAnnotationPanel.prototype.paint = function(context) {
+jheatmap.components.RowAnnotationPanel.prototype.paint = function(context, offset_y) {
 
     if (this.visible) {
 
@@ -3704,12 +3711,17 @@ jheatmap.components.RowAnnotationPanel.prototype.paint = function(context) {
         var textSpacing = 5;
         var annRowHeadCtx = this.headerCanvas.get()[0].getContext('2d');
 
+        var offset_x = 0;
         if(context !== undefined && context !== null)
         {
             annRowHeadCtx = context;
+            offset_x = this.headerCanvas.offset().left;
+            //offset_y = this.canvasHeader.offset().top;
         }
         else
         {
+            offset_y = 0;
+
             annRowHeadCtx.clearRect(0, 0, annRowHeadCtx.canvas.width, annRowHeadCtx.canvas.height);
         }
 
@@ -3718,18 +3730,25 @@ jheatmap.components.RowAnnotationPanel.prototype.paint = function(context) {
         annRowHeadCtx.textBaseline = "middle";
         annRowHeadCtx.font = "bold 11px Helvetica Neue,Helvetica,Arial,sans-serif";
 
+
+        var rowLabelOffset = 150;
+        if(offset_y != 0)
+        {
+            rowLabelOffset = offset_y;
+        }
+
         for (var i = 0; i < heatmap.rows.annotations.length; i++) {
 
             var value = heatmap.rows.header[heatmap.rows.annotations[i]];
             annRowHeadCtx.save();
-            annRowHeadCtx.translate(i * heatmap.rows.annotationSize + (heatmap.rows.annotationSize / 2), 150);
+            annRowHeadCtx.translate(offset_x + (i * heatmap.rows.annotationSize + (heatmap.rows.annotationSize / 2)), rowLabelOffset);
             annRowHeadCtx.rotate(Math.PI / 2);
-            annRowHeadCtx.fillText(value, -textSpacing - 5, 0);
+            annRowHeadCtx.fillText(value, (-textSpacing - 5), 0);
             annRowHeadCtx.restore();
 
             // Order mark
             annRowHeadCtx.save();
-            annRowHeadCtx.translate(Math.round((i * heatmap.rows.annotationSize) + (heatmap.rows.annotationSize / 2)), annRowHeadCtx.canvas.height - 4)
+            annRowHeadCtx.translate(offset_x + Math.round((i * heatmap.rows.annotationSize) + (heatmap.rows.annotationSize / 2)), offset_y + (annRowHeadCtx.canvas.height - 4));
             annRowHeadCtx.rotate(Math.PI / 4);
             if (heatmap.rows.sorter.field == heatmap.rows.annotations[i]) {
                 jheatmap.components.OrderSymbol(annRowHeadCtx, heatmap.rows.sorter.asc);
@@ -3750,9 +3769,12 @@ jheatmap.components.RowAnnotationPanel.prototype.paint = function(context) {
         if(context !== undefined && context !== null)
         {
             rowsAnnValuesCtx = context;
+            offset_x = this.bodyCanvas.offset().left;
+            //offset_y = this.bodyCanvas.offset().top;
         }
         else
         {
+            offset_y = 0;
             rowsAnnValuesCtx.clearRect(0, 0, rowsAnnValuesCtx.canvas.width, rowsAnnValuesCtx.canvas.height);
         }
 
@@ -3764,14 +3786,14 @@ jheatmap.components.RowAnnotationPanel.prototype.paint = function(context) {
 
                 if (value != null) {
                     rowsAnnValuesCtx.fillStyle = heatmap.rows.decorators[field].toColor(value);
-                    rowsAnnValuesCtx.fillRect(i * heatmap.rows.annotationSize, (row - startRow) * rz, heatmap.rows.annotationSize, rz);
+                    rowsAnnValuesCtx.fillRect(offset_x + (i * heatmap.rows.annotationSize), offset_y + ((row - startRow) * rz), heatmap.rows.annotationSize, rz);
                 }
 
             }
 
             if ($.inArray(heatmap.rows.order[row], heatmap.rows.selected) > -1) {
                 rowsAnnValuesCtx.fillStyle = "rgba(0,0,0,0.1)";
-                rowsAnnValuesCtx.fillRect(0, (row - startRow) * rz, heatmap.rows.annotations.length * heatmap.rows.annotationSize, rz);
+                rowsAnnValuesCtx.fillRect(offset_x + 0, offset_y + ((row - startRow) * rz), heatmap.rows.annotations.length * heatmap.rows.annotationSize, rz);
                 rowsAnnValuesCtx.fillStyle = "white";
             }
         }
@@ -4022,7 +4044,7 @@ jheatmap.components.RowHeaderPanel = function(drawer, heatmap) {
 
 };
 
-jheatmap.components.RowHeaderPanel.prototype.paint = function(context) {
+jheatmap.components.RowHeaderPanel.prototype.paint = function(context, offset_y) {
 
     var heatmap = this.heatmap;
 
@@ -4043,15 +4065,15 @@ jheatmap.components.RowHeaderPanel.prototype.paint = function(context) {
     };
 
     var offset_x = 0;
-    var offset_y = 0;
     if(context !== undefined && context !== null)
     {
         rowCtx = context;
         offset_x = this.canvas.offset().left;
-        offset_y = this.canvas.offset().top - 100;
+        //offset_y = this.canvas.offset().top - 100;
     }
     else
     {
+        offset_y = 0;
         rowCtx.clearRect(0, 0, rowCtx.canvas.width, rowCtx.canvas.height);
     }
 
@@ -4855,22 +4877,34 @@ jheatmap.HeatmapDrawer = function (heatmap) {
         heatmap.offset.bottom = Math.min(heatmap.offset.top + maxRows, heatmap.rows.order.length);
         heatmap.offset.right = Math.min(heatmap.offset.left + maxCols, heatmap.cols.order.length);
 
+        var offsetY = legendPanel.height;
+
+        console.log("offset y " + offsetY);
+
         // Column headers panel
-        columnHeaderPanel.paint(context);
+        columnHeaderPanel.paint(context, offsetY);
+
+        offsetY = offsetY + columnHeaderPanel.canvas.height();
+
 
         // Rows headers
-        rowHeaderPanel.paint(context);
+        rowHeaderPanel.paint(context, offsetY + columnAnnotationPanel.canvasBody.height());
 
         // Row annotations
-        rowAnnotationPanel.paint(context);
+        rowAnnotationPanel.paint(context, offsetY);
+
 
         // Columns annotations
-        columnAnnotationPanel.paint(context);
+        columnAnnotationPanel.paint(context, offsetY);
+
+        offsetY = offsetY + columnAnnotationPanel.canvasBody.height();
 
         // Cells
-        cellsBodyPanel.paint(context);
+        cellsBodyPanel.paint(context, offsetY);
+
 
         //Heatmap Legend
+
         legendPanel.paint(context);
 
         // Vertical scroll

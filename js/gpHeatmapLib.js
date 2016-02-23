@@ -557,7 +557,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
 
             var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
             hRes.build();
-            hRes.paint(context, true, true);
+            hRes.paint(context, true);
 
             var svg = context.getSerializedSvg();
 
@@ -567,9 +567,11 @@ gpVisual.HeatMap = function(dataUrl, container) {
             canvg(document.getElementById('gpHeatMap_imageRenderCanvas'), svg);
 
             //redraw the image
+            gpHeatmap.size.height = originalHeight;
+            gpHeatmap.size.width = originalWidth;
             hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
             hRes.build();
-            hRes.paint(null, true, true);
+            hRes.paint(null, false);
 
             var canvas = document.getElementById('gpHeatMap_imageRenderCanvas');
             canvas.toBlob(function (blob) {
@@ -582,11 +584,11 @@ gpVisual.HeatMap = function(dataUrl, container) {
             gpHeatmap.size.height = fullHeight; // / 2;
             gpHeatmap.size.width = fullWidth;
 
-            var context = new C2S(gpHeatmap.size.width + 300, gpHeatmap.size.height + 350);
+            var context = new C2S(gpHeatmap.size.width + 360, gpHeatmap.size.height + 350);
 
             var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
             hRes.build();
-            hRes.paint(context, true, true);
+            hRes.paint(context, true);
 
             var svg = context.getSerializedSvg();
             var blob = new Blob([ svg ], {
@@ -596,9 +598,11 @@ gpVisual.HeatMap = function(dataUrl, container) {
             var file = fileName + ".svg";
             saveAs(blob, file);
 
-            var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+            gpHeatmap.size.height = originalHeight;
+            gpHeatmap.size.width = originalWidth;
+            hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
             hRes.build();
-            hRes.paint(null, true, true);
+            hRes.paint(null, false);
         }
     };
 };

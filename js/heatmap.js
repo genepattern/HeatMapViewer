@@ -629,7 +629,9 @@ var HeatMapViewer = function()
             });
         });
 
-        heatMap.drawHeatMap();
+        heatMap.drawHeatMap({
+            showLegend: true
+        });
     }
 
     // declare 'public' functions
