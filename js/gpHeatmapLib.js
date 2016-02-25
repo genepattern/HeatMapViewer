@@ -89,11 +89,11 @@ gpVisual.HeatMap = function(dataUrl, container) {
      */
     this._findNext = function(text, startingIndex, type)
     {
-        startingIndex = startingIndex == undefined ? 0: startingIndex;
+        startingIndex = startingIndex === undefined ? 0: startingIndex;
 
         //default to searching features if type is not specified
         var data = gpHeatmap.rows.values;
-        if(type == "sample")
+        if(type === "sample")
         {
             data =  gpHeatmap.cols.values;
         }
@@ -102,7 +102,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
         {
             if(data[s][0].indexOf(text) != -1)
             {
-                if(type == "sample")
+                if(type === "sample")
                 {
                     self._scrollToColumn(s, 10);
                 }
@@ -119,12 +119,12 @@ gpVisual.HeatMap = function(dataUrl, container) {
 
     this._scrollToRow  = function(rowIndex, offSet)
     {
-        if(rowIndex == undefined || rowIndex < 0 || rowIndex >= gpHeatmap.rows.length)
+        if(rowIndex === undefined || rowIndex < 0 || rowIndex >= gpHeatmap.rows.length)
         {
             return;
         }
 
-        if(offSet == undefined || offSet < 0)
+        if(offSet === undefined || offSet < 0)
         {
             offSet = 0;
         }
@@ -141,12 +141,12 @@ gpVisual.HeatMap = function(dataUrl, container) {
 
     this._scrollToColumn  = function(colIndex, offSet)
     {
-        if(colIndex == undefined || colIndex < 0 || colIndex >= gpHeatmap.cols.length)
+        if(colIndex === undefined || colIndex < 0 || colIndex >= gpHeatmap.cols.length)
         {
             return;
         }
 
-        if(offSet == undefined || offSet < 0)
+        if(offSet === undefined || offSet < 0)
         {
             offSet = 0;
         }
@@ -172,7 +172,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
 
         //find the index of the label
         var index = $.inArray(label, rowHeaders);
-        if(index != -1)
+        if(index !== -1)
         {
             if(gpHeatmap.rows.decorators !== undefined && index < gpHeatmap.rows.decorators.length)
             {
@@ -221,11 +221,11 @@ gpVisual.HeatMap = function(dataUrl, container) {
                 var existingLabel = $.inArray(label, currentFeatureLabels);
 
                 //check if this is a new label
-                if(existingLabel == -1)
+                if(existingLabel === -1)
                 {
                     var labelIndex = $.inArray(label, gpHeatmap.rows.header);
 
-                    if (gpHeatmap.rows.annotations == undefined) {
+                    if (gpHeatmap.rows.annotations === undefined) {
                         gpHeatmap.rows.annotations = [];
                     }
 
@@ -319,7 +319,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
         var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
         hRes.build();
 
-        if(showScrollBars == undefined)
+        if(showScrollBars === undefined)
         {
             showScrollBars = true;
         }
@@ -334,7 +334,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
         {
             var labelIndex = $.inArray(label, gpHeatmap.cols.header);
 
-            if(gpHeatmap.cols.annotations == undefined)
+            if(gpHeatmap.cols.annotations === undefined)
             {
                 gpHeatmap.cols.annotations = [];
             }
@@ -464,7 +464,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
             var midColor = [255, 255, 255];
             var maxColor = [255, 0, 0];
 
-            if (self.colors != undefined && self.colors !== null && self.colors.length > 0)
+            if (self.colors !== undefined && self.colors !== null && self.colors.length > 0)
             {
                 minColor = self.colors[0];
                 if (self.colors.length > 1) {
@@ -505,7 +505,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
 
     this.updateColorScheme = function (colorScheme, isDiscrete)
     {
-        if(colorScheme == this.COLOR_SCHEME.GLOBAL)
+        if(colorScheme === this.COLOR_SCHEME.GLOBAL)
         {
             this.setGlobalColorScheme(isDiscrete);
         }
