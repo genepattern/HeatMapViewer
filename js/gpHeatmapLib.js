@@ -527,7 +527,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
 
         var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
         hRes.build();
-        hRes.paint(null, true, true);
+        hRes.paint(null, false);
     };
 
     this.saveImage = function (fileName, fileFormat)
