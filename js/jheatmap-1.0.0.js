@@ -384,11 +384,19 @@ jheatmap.readers.FeatureLabelsReader.prototype.read = function (result, initiali
     var sep = this.separator;
     var url = this.url;
 
+    var credentials = false;
+    if(url.indexOf("https://") === 0)
+    {
+        credentials = true;
+    }
+
     jQuery.ajax({
-
         url: url,
-
         dataType: "text",
+        xhrFields: {
+            withCredentials: credentials
+        },
+        crossDomain: true,
 
         success: function (file) {
 
@@ -527,9 +535,19 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
     var url = this.url;
     var colAnnotationUrl = this.colAnnotationUrl;
 
+    var credentials = true;
+    if(url.indexOf("https://") === 0)
+    {
+        credentials = true;
+    }
+
     jQuery.ajax({
         url: url,
         dataType: "text",
+        xhrFields: {
+            withCredentials: credentials
+        },
+        crossDomain: true,
         success: function (file) {
 
             var lines = file.replace('\r', '').split('\n');
@@ -673,11 +691,20 @@ jheatmap.readers.ClsReader.prototype.read = function (result, initialize) {
     var url = this.url;
     var label = this.label;
 
+    var credentials = false;
+    if(url.indexOf("https://") === 0)
+    {
+        credentials = true;
+    }
+
     jQuery.ajax({
         url: url,
-
         dataType: "text",
 
+        xhrFields: {
+            withCredentials: credentials
+        },
+        crossDomain: true,
         success: function (file) {
 
             if(result.header == undefined )
@@ -3988,6 +4015,11 @@ jheatmap.components.RowHeaderPanel = function(drawer, heatmap) {
         if (nrz != heatmap.rows.zoom) {
             heatmap.rows.zoom = Math.round(nrz);
             heatmap.offset.top = firstRow - Math.floor(firstY / heatmap.rows.zoom);
+
+            /*if(isNaN(heatmap.offset.top))
+            {
+                heatmap.offset.top = 0;
+            }*/
         }
     };
 
@@ -4172,6 +4204,12 @@ jheatmap.components.VerticalScrollBar = function(drawer, heatmap) {
         var pY = e.pageY - $(e.target).offset().top - ((endY - iniY) / 2);
         pY = (pY < 0 ? 0 : pY);
         heatmap.offset.top = Math.round((pY / maxHeight) * heatmap.rows.order.length);
+
+        /*if(isNaN(heatmap.offset.top))
+        {
+            heatmap.offset.top = 0;
+        }*/
+
         drawer.paint();
     };
 
@@ -4213,6 +4251,12 @@ jheatmap.components.VerticalScrollBar = function(drawer, heatmap) {
             var pY = e.pageY + vScrollDownOffset - scrollTarget.offset().top - ((endY - iniY) / 2);
             pY = (pY < 0 ? 0 : pY);
             heatmap.offset.top = Math.round((pY / maxHeight) * heatmap.rows.order.length);
+
+            /*if(isNaN(heatmap.offset.top))
+            {
+                heatmap.offset.top = 0;
+            }*/
+
             drawer.paint();
         }
 
@@ -5524,8 +5568,21 @@ jheatmap.HeatmapSize.prototype.init = function () {
     }
 }(function ($) {
 
+    /*function isEventSupported(eventName) {
+        var el = document.createElement('div');
+        eventName = 'on' + eventName;
+        var isSupported = (eventName in el);
+        if (!isSupported) {
+            el.setAttribute(eventName, 'return;');
+            isSupported = typeof el[eventName] == 'function';
+        }
+        el = null;
+        return isSupported;
+    }*/
+
     var toFix = ['wheel', 'mousewheel', 'DOMMouseScroll', 'MozMousePixelScroll'];
     var toBind = 'onwheel' in document || document.documentMode >= 9 ? ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
+    //var toBind = !isEventSupported('mousewheel') ? ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
     var lowestDelta, lowestDeltaXY;
 
     if ( $.event.fixHooks ) {
