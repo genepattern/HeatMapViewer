@@ -154,10 +154,10 @@ var HeatMapViewer = function()
                     {
                         var heatMapColors = heatMap.getColors();
 
-                        function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
+                        /*function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
                         function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
                         function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
-                        function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
+                        function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}*/
 
                         var isDiscrete = $("input[name='discreteGradient']:checked").val() == "discrete";
 
@@ -359,6 +359,11 @@ var HeatMapViewer = function()
                     }
                 }
             });
+        });
+
+        $("#help").button().click(function()
+        {
+            window.open("http://www.broadinstitute.org/cancer/software/genepattern/modules/docs/HeatMapViewer/14");
         });
 
         $("#addLabels").parent().append("<input id='labelFile' type='file'/>");
