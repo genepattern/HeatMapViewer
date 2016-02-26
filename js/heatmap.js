@@ -598,6 +598,9 @@ var HeatMapViewer = function()
                 .append($("<div/>").attr("id", "caseSensitiveDiv")
                     .append("<label><input type='checkbox' id='findTextCaseSensitive' name='findTextCaseSensitive' " +
                         "checked='checked'>Case sensitive</label></div>"))
+                .append($("<ul/>").attr("id", "hiddenMatchesMain").hide()
+                    .append("<li>Hidden Matches</li>")
+                    .append($("<ul/>").attr("id", "hiddenMatchesList")))
             );
 
             $("input[name='findType']").click(function()
@@ -681,18 +684,28 @@ var HeatMapViewer = function()
 
                             var caseSensitive = $("#findTextCaseSensitive").is(":checked");
 
+                            var matchResults = {};
                             var lastIndex = -1;
                             if (findType == "samples") {
-                                lastIndex = heatMap.findNextSample(findText, startIndex, caseSensitive);
+                                matchResults = heatMap.findNextSample(findText, startIndex, caseSensitive);
                             }
                             else {
-                                lastIndex = heatMap.findNextFeature(findText, startIndex, caseSensitive);
+                                matchResults = heatMap.findNextFeature(findText, startIndex, caseSensitive);
                             }
 
+                            lastIndex = matchResults.matchIndex;
                             if (lastIndex == -1) {
                                 showErrorMessage("No matches found", "Find Error");
                             }
-                            else {
+                            else
+                            {
+                                if(matchResults.isHidden)
+                                {
+                                    $("#hiddenMatchesMain").show();
+                                    //add to list of hidden matches
+                                    $("#hiddenMatchesList").append("<li>" + matchResults.match + "</li>");
+                                }
+
                                 $(this).data("lastFindIndex", lastIndex);
                             }
                         }

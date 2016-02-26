@@ -117,7 +117,6 @@ gpVisual.HeatMap = function(options) {
             dimension = gpHeatmap.cols;
         }
 
-
         for(var s = startingIndex;s >= 0;s--)
         {
             var isHidden = dimension.order.indexOf(s) === -1;
@@ -136,19 +135,31 @@ gpVisual.HeatMap = function(options) {
 
             if(value.indexOf(searchText) != -1)
             {
-                if(type === "sample")
+                if(!isHidden)
                 {
-                    self._scrollToColumn(s, 10);
+                    if (type === "sample") {
+                        self._scrollToColumn(s, 10);
+                    }
+                    else {
+                        self._scrollToRow(s, 10);
+                    }
                 }
                 else
                 {
-                    self._scrollToRow(s, 10);
+                    self._unSelectAll(type);
                 }
-                return s;
+                return {
+                    matchIndex: s,
+                    match: data[s][0],
+                    isHidden: isHidden
+                };
             }
         }
 
-        return -1;
+        self._unSelectAll(type);
+        return {
+            matchIndex: -1
+        };
     };
 
     /*
@@ -187,11 +198,6 @@ gpVisual.HeatMap = function(options) {
         {
             var isHidden = dimension.order.indexOf(s) === -1;
 
-            if(isHidden)
-            {
-                continue;
-            }
-
             var value = data[s][0];
             if(caseSensitive !== undefined && !caseSensitive)
             {
@@ -201,19 +207,34 @@ gpVisual.HeatMap = function(options) {
 
             if(value.indexOf(searchText) != -1)
             {
-                if(type === "sample")
+                if(!isHidden)
                 {
-                    self._scrollToColumn(s, 10);
+                    if(type === "sample")
+                    {
+                        self._scrollToColumn(s, 10);
+                    }
+                    else
+                    {
+                        self._scrollToRow(s, 10);
+                    }
                 }
                 else
                 {
-                    self._scrollToRow(s, 10);
+                    self._unSelectAll(type);
                 }
-                return s;
+                return {
+                    matchIndex: s,
+                    match: data[s][0],
+                    isHidden: isHidden
+                };
             }
         }
 
-        return -1;
+        self._unSelectAll(type);
+
+        return  {
+            matchIndex: -1
+        };
     };
 
     this._scrollToRow  = function(rowIndex, offSet)
@@ -236,6 +257,20 @@ gpVisual.HeatMap = function(options) {
         var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
         hRes.build();
         hRes.paint(null, true, true);
+    };
+
+    this._unSelectAll = function(type)
+    {
+        if(type === "sample")
+        {
+            gpHeatmap.cols.selected = [];
+        }
+        else
+        {
+            gpHeatmap.rows.selected = []
+        }
+
+        self.drawHeatMap();
     };
 
     this._scrollToColumn  = function(colIndex, offSet)

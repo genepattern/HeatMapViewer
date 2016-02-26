@@ -275,3 +275,18 @@ td.border
     margin-right: 32px !important;
 }
 
+ul#hiddenMatchesMain
+{
+    list-style-type:none;
+    font-size: 14px;
+    height: 75px;
+    overflow: auto;
+    border: 1px solid lightgray;
+    margin-left: 2px;
+}
+
+ul#hiddenMatchesList
+{
+    font-size: 12px;
+}
+
