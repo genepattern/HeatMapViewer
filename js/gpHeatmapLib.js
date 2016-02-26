@@ -1,8 +1,8 @@
 var gpVisual = {};
 
-gpVisual.HeatMap = function(dataUrl, container) {
-    var datasetUrl = dataUrl;
-    var hContainer = container;
+gpVisual.HeatMap = function(options) {
+    var datasetUrl = options.dataUrl;
+    var hContainer = options.container;
     var gpHeatmap = null;
     var colors = null;
     var colorScheme = null;
@@ -15,57 +15,133 @@ gpVisual.HeatMap = function(dataUrl, container) {
     };
     var self = this;
 
-    this.drawHeatMap = function (options)
+    this._setUp = function(options)
     {
         var bodyWidth = hContainer.width();
-        var totalHeight;
+        //var totalHeight;
 
+        if(options !== undefined && options.showLegend !== undefined)
+        {
+            gpHeatmap.controls.legend = options.showLegend;
+        }
+
+        gpHeatmap.controls.shortcuts = false;
+        //gpHeatmap.controls.columnSelector = false;
+        gpHeatmap.controls.cellSelector = false;
+
+        gpHeatmap.controls.legend = false;
+
+        if(options !== undefined && options.showLegend !== undefined)
+        {
+            gpHeatmap.controls.legend = options.showLegend;
+        }
+        //height of the columns
+        gpHeatmap.cols.labelSize = 150;
+
+        //cols and rows zoom level should be the same
+        self.defaultZoomLevel = gpHeatmap.cols.zoom;
+
+        //heatmap.cols.zoom = 30;
+        //heatmap.rows.zoom = 30;
+        gpHeatmap.size.width = bodyWidth - 300; //1100;
+        gpHeatmap.size.height = 400; //30000; //305;
+        //heatmap.cols.labelSize = 330;
+
+        /*heatmap.cells.decorators["Values"] = new jheatmap.decorators.Categorical({
+         values: ["-2","0","2"],
+         colors : ["green","yellow", "yellow"]
+         });*/
+        //totalHeight = 7 * heatmap.rows.zoom;
+
+        self.setRelativeColorScheme(false);
+    };
+
+    this._init = function (options)
+    {
         hContainer.empty();
         $("#gpHeatMap_imageRenderCanvas").remove();
         hContainer.before($("<canvas/>").attr("id", "gpHeatMap_imageRenderCanvas"));
         $("#gpHeatMap_imageRenderCanvas").hide();
         hContainer.heatmap(
+        {
+            data:
             {
-                data: {
-                    values: new jheatmap.readers.GctHeatmapReader(
-                        {
-                            url: datasetUrl
-                        })
-                },
-                init: function (heatmap) {
-                    gpHeatmap = heatmap;
+                values: new jheatmap.readers.GctHeatmapReader(
+                {
+                    url: datasetUrl
+                })/*,
+                error: function(msg)
+                {
 
-                    heatmap.controls.shortcuts = false;
-                    //heatmap.controls.columnSelector = false;
-                    heatmap.controls.cellSelector = false;
+                }*/
+            },
+            init: function (heatmap)
+            {
+                gpHeatmap = heatmap;
+                self._setUp(options);
+            }
+        });
+    };
 
-                    heatmap.controls.legend = false;
+    self._init(options);
 
-                    if(options !== undefined && options.showLegend !== undefined)
-                    {
-                        heatmap.controls.legend = options.showLegend;
-                    }
-                    //height of the columns
-                    heatmap.cols.labelSize = 150;
+    /*
+     * Returns the index of the feature with matching text in the heatmap
+     */
+    this.findPreviousFeature = function(text, startingIndex, caseSensitive)
+    {
+        return self._findPrevious(text, startingIndex, "feature", caseSensitive);
+    };
 
-                    //cols and rows zoom level should be the same
-                    self.defaultZoomLevel = heatmap.cols.zoom;
+    /*
+     * Returns the index of the feature with matching text in the heatmap
+     */
+    this.findPreviousSample = function(text, startingIndex, caseSensitive)
+    {
+        return self._findPrevious(text, startingIndex, "sample", caseSensitive);
+    };
 
-                    //heatmap.cols.zoom = 30;
-                    //heatmap.rows.zoom = 30;
-                    heatmap.size.width = bodyWidth - 300; //1100;
-                    heatmap.size.height = 400; //30000; //305;
-                    //heatmap.cols.labelSize = 330;
+    /*
+     * Returns the index of the next matching feature or sample in the heatmap
+     */
+    this._findPrevious = function(searchText, startingIndex, type, caseSensitive)
+    {
+        startingIndex = startingIndex === undefined ? data.length: startingIndex;
 
-                    /*heatmap.cells.decorators["Values"] = new jheatmap.decorators.Categorical({
-                     values: ["-2","0","2"],
-                     colors : ["green","yellow", "yellow"]
-                     });*/
-                    totalHeight = 7 * heatmap.rows.zoom;
+        //default to searching features if type is not specified
+        var data = gpHeatmap.rows.values;
+        if(type === "sample")
+        {
+            data =  gpHeatmap.cols.values;
+        }
 
-                    self.setRelativeColorScheme(false);
+
+        for(var s = startingIndex;s >= 0;s--)
+        {
+            //var isHidden = gpHeatmap.order.indexOf(s) === -1;
+            //data[][0] contains the feature or column names
+            var value = data[s][0];
+            if(caseSensitive !== undefined && !caseSensitive)
+            {
+                 searchText = searchText.toLowerCase();
+                value = value.toLowerCase();
+            }
+
+            if(value.indexOf(searchText) != -1)
+            {
+                if(type === "sample")
+                {
+                    self._scrollToColumn(s, 10);
                 }
-            });
+                else
+                {
+                    self._scrollToRow(s, 10);
+                }
+                return s;
+            }
+        }
+
+        return -1;
     };
 
     /*
@@ -87,7 +163,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
     /*
      * Returns the index of the next matching feature or sample in the heatmap
      */
-    this._findNext = function(text, startingIndex, type)
+    this._findNext = function(searchText, startingIndex, type, caseSensitive)
     {
         startingIndex = startingIndex === undefined ? 0: startingIndex;
 
@@ -100,7 +176,14 @@ gpVisual.HeatMap = function(dataUrl, container) {
 
         for(var s = startingIndex;s < data.length;s++)
         {
-            if(data[s][0].indexOf(text) != -1)
+            var value = data[s][0];
+            if(caseSensitive !== undefined && !caseSensitive)
+            {
+                searchText = searchText.toLowerCase();
+                value = value.toLowerCase();
+            }
+
+            if(value.indexOf(searchText) != -1)
             {
                 if(type === "sample")
                 {
@@ -184,7 +267,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
                     details[rowLabelKeys[i]] = rowLabelDetails[rowLabelKeys[i]];
                 }
 
-                self.redrawHeatMap();
+                self.drawHeatMap();
             }
         }
     };
@@ -291,7 +374,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
                     details[sampleLabelKeys[i]] = sampleLabelDetails[sampleLabelKeys[i]];
                 }
 
-                self.redrawHeatMap();
+                self.drawHeatMap();
             }
         }
     };
@@ -314,17 +397,34 @@ gpVisual.HeatMap = function(dataUrl, container) {
         return details;
     };
 
-    this.redrawHeatMap = function(showScrollBars)
+    this.drawHeatMap = function(options)
     {
-        var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
-        hRes.build();
-
-        if(showScrollBars === undefined)
+        if(options === undefined)
         {
-            showScrollBars = true;
+            options =
+            {
+                showScrollBars: true,
+                reloadData: false
+            }
         }
 
-        hRes.paint(null, showScrollBars);
+        if(options.reloadData)
+        {
+            self._init(options);
+        }
+        else
+        {
+            //just rebuild the heatmap
+            var hRes = new jheatmap.HeatmapDrawer(gpHeatmap);
+            hRes.build();
+
+            if(options.showScrollBars === undefined)
+            {
+                options.showScrollBars = true;
+            }
+
+            hRes.paint(null, options.showScrollBars);
+        }
     };
 
     this.addSampleLabels = function(clsUrl, label)
@@ -342,7 +442,7 @@ gpVisual.HeatMap = function(dataUrl, container) {
             gpHeatmap.cols.decorators[labelIndex] = new jheatmap.decorators.CategoricalRandom();
             gpHeatmap.cols.annotations.push(labelIndex);
 
-            self.redrawHeatMap(true);
+            self.drawHeatMap();
         };
 
         var addCls = new jheatmap.readers.ClsReader(

@@ -22,7 +22,13 @@ var HeatMapViewer = function()
 
     function load(datasetUrl)
     {
-        var heatMap = new gpVisual.HeatMap(datasetUrl, $("#heatmap"));
+        var heatMap = new gpVisual.HeatMap(
+        {
+            dataUrl: datasetUrl,
+            container: $("#heatmap"),
+            showLegend: true
+        });
+
         var MAX_ZOOM = 80;
         var ZOOM_STEP = 4;
 
@@ -286,9 +292,12 @@ var HeatMapViewer = function()
 
         $("#reload").button().click(function(event)
         {
-            heatMap = new gpVisual.HeatMap(datasetUrl, $("#heatmap"));
-            heatMap.drawHeatMap({
+            /*heatMap = new gpVisual.HeatMap(datasetUrl, $("#heatmap"));
+            heatMap.init({
                 showLegend: true
+            });*/
+            heatMap.drawHeatMap({
+                reloadData: true
             });
         });
 
@@ -585,7 +594,11 @@ var HeatMapViewer = function()
                     .append($("<input type='radio' id='findFeatures' name='findType' class='findType' value='features' checked='checked'>" +
                     "<label for='findFeatures'>Features</label>"))
                     .append($("<input type='radio' id='findSamples' name='findType' class='findType' value='samples'>" +
-                    "<label for='findSamples'>Samples</label>"))));
+                    "<label for='findSamples'>Samples</label>")))
+                .append($("<div/>").attr("id", "caseSensitiveDiv")
+                    .append("<label><input type='checkbox' id='findTextCaseSensitive' name='findTextCaseSensitive' " +
+                        "checked='checked'>Case Sensitive</label></div>"))
+            );
 
             $("input[name='findType']").click(function()
             {
@@ -609,55 +622,92 @@ var HeatMapViewer = function()
             findDialog.dialog(
             {
                 title: "Find",
-                minWidth: 350,
-                minHeight: 235,
+                minWidth: 410,
+                minHeight: 250,
                 buttons:
                 {
-                    "Find Next": function ()
-                    {
-                        var findText = $("#findText").val();
-                        var findType = $("input[name='findType']:checked").val();
-                        var startIndex = $(this).data("lastFindIndex");
-                        if(startIndex == undefined || startIndex == -1)
+                    "Previous": {
+                        class: 'previousButton',
+                        text: 'Previous',
+                        click: function ()
                         {
-                            startIndex = 0;
-                        }
-                        else
-                        {
-                            startIndex = startIndex +1;
-                        }
+                            var findText = $("#findText").val();
+                            var findType = $("input[name='findType']:checked").val();
+                            var startIndex = $(this).data("lastFindIndex");
+                            if(startIndex == undefined || startIndex == -1)
+                            {
+                                startIndex = 0;
+                            }
+                            else
+                            {
+                                startIndex = startIndex - 1;
+                            }
 
-                        var lastIndex = -1;
-                        if(findType == "samples")
-                        {
-                            lastIndex = heatMap.findNextSample(findText, startIndex);
-                        }
-                        else
-                        {
-                            lastIndex = heatMap.findNextFeature(findText, startIndex);
-                        }
+                            var caseSensitive = $("#findTextCaseSenstive").is(":checked");
 
-                        if(lastIndex == -1)
-                        {
-                            showErrorMessage("No matches found", "Find Error");
-                        }
-                        else
-                        {
-                            $(this).data("lastFindIndex",lastIndex);
+                            var lastIndex = -1;
+                            if(findType == "samples")
+                            {
+                                lastIndex = heatMap.findPreviousSample(findText, startIndex, caseSensitive);
+                            }
+                            else
+                            {
+                                lastIndex = heatMap.findPreviousFeature(findText, startIndex, caseSensitive);
+                            }
+
+                            if(lastIndex == -1)
+                            {
+                                showErrorMessage("No matches found", "Find Error");
+                            }
+                            else
+                            {
+                                $(this).data("lastFindIndex",lastIndex);
+                            }
                         }
                     },
-                    Close: function ()
-                    {
-                        //Reset the last find indexret
-                        $(this).data("lastFindIndex", -1);
-                        $(this).dialog("destroy");
+                    "Next": {
+                        class: 'nextButton',
+                        text: 'Next',
+                        click: function () {
+                            var findText = $("#findText").val();
+                            var findType = $("input[name='findType']:checked").val();
+                            var startIndex = $(this).data("lastFindIndex");
+                            if (startIndex == undefined || startIndex == -1) {
+                                startIndex = 0;
+                            }
+                            else {
+                                startIndex = startIndex + 1;
+                            }
+
+                            var caseSensitive = $("#findTextCaseSenstive").is(":checked");
+
+                            var lastIndex = -1;
+                            if (findType == "samples") {
+                                lastIndex = heatMap.findNextSample(findText, startIndex, caseSensitive);
+                            }
+                            else {
+                                lastIndex = heatMap.findNextFeature(findText, startIndex, caseSensitive);
+                            }
+
+                            if (lastIndex == -1) {
+                                showErrorMessage("No matches found", "Find Error");
+                            }
+                            else {
+                                $(this).data("lastFindIndex", lastIndex);
+                            }
+                        }
+                    },
+                    "Close": {
+                        class: 'closeButton',
+                        text: 'Close',
+                        click: function () {
+                            //Reset the last find index
+                            $(this).data("lastFindIndex", -1);
+                            $(this).dialog("destroy");
+                        }
                     }
                 }
             });
-        });
-
-        heatMap.drawHeatMap({
-            showLegend: true
         });
     }
 

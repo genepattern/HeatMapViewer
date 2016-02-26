@@ -251,3 +251,27 @@ td.border
     font-size: 14px;
 }
 
+#caseSensitiveDiv
+{
+    width: 160px;
+    margin-left: 33px;
+    margin-top: 10px;
+}
+
+.previousButton
+{
+    position: absolute;
+    left: 53px;
+}
+
+.nextButton
+{
+    position: absolute;
+    left: 183px;
+}
+
+.closeButton
+{
+    margin-right: 32px !important;
+}
+
