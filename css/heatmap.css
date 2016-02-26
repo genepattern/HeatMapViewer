@@ -290,3 +290,14 @@ ul#hiddenMatchesList
     font-size: 12px;
 }
 
+.findDialog
+{
+    font-size: 16px;
+}
+
+#addFsLabelsFormat
+{
+    margin-left: 10px;
+    vertical-align: bottom;
+}
+

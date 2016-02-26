@@ -390,6 +390,7 @@ var HeatMapViewer = function()
                         {
                             $("#labelFile").click();
                         }))
+                        .append($("<span/>").attr("id", "addFsLabelsFormat"))
                         .append($("<div/>").attr("id", "newLabelFileName")))
                 );
 
@@ -527,15 +528,17 @@ var HeatMapViewer = function()
 
             labelDialog.find("#featuresLabel").click(function () {
                 //Ignore the Name and Description Labels
-                var fLabels = heatMap.getFeatureLabels();
-                if (fLabels != undefined && fLabels.length > 1) {
-                    // fLabels = fLabels.splice(2);
-                }
-                showExistingLabels(fLabels);
+                showExistingLabels(heatMap.getFeatureLabels());
+
+                //add file format info
+                $("#addFsLabelsFormat").empty();
+                $("#addFsLabelsFormat").append("<a href='http://www.broadinstitute.org/cancer/software/genepattern/file-formats-guide#GMX' target='_blank'>GMX format</a>");
             });
 
             labelDialog.find("#samplesLabel").click(function () {
                 showExistingLabels(heatMap.getSampleLabels());
+                $("#addFsLabelsFormat").empty();
+                $("#addFsLabelsFormat").append("<a href='http://www.broadinstitute.org/cancer/software/genepattern/file-formats-guide#CLS' target='_blank'>CLS format</a>");
             });
 
             labelDialog.dialog(
@@ -602,7 +605,7 @@ var HeatMapViewer = function()
                     "<label for='findSamples'>Samples</label>")))
                 .append($("<div/>").attr("id", "caseSensitiveDiv")
                     .append("<label><input type='checkbox' id='findTextCaseSensitive' name='findTextCaseSensitive' " +
-                        "checked='checked'>Case sensitive</label></div>"))
+                        "checked='checked'>Case-sensitive</label></div>"))
                 .append($("<ul/>").attr("id", "hiddenMatchesMain").hide()
                     .append("<li>Hidden Matches</li>")
                     .append($("<ul/>").attr("id", "hiddenMatchesList")))
