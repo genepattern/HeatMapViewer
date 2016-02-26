@@ -597,7 +597,7 @@ var HeatMapViewer = function()
                     "<label for='findSamples'>Samples</label>")))
                 .append($("<div/>").attr("id", "caseSensitiveDiv")
                     .append("<label><input type='checkbox' id='findTextCaseSensitive' name='findTextCaseSensitive' " +
-                        "checked='checked'>Case Sensitive</label></div>"))
+                        "checked='checked'>Case sensitive</label></div>"))
             );
 
             $("input[name='findType']").click(function()
@@ -679,7 +679,7 @@ var HeatMapViewer = function()
                                 startIndex = startIndex + 1;
                             }
 
-                            var caseSensitive = $("#findTextCaseSenstive").is(":checked");
+                            var caseSensitive = $("#findTextCaseSensitive").is(":checked");
 
                             var lastIndex = -1;
                             if (findType == "samples") {

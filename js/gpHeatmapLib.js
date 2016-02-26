@@ -110,15 +110,22 @@ gpVisual.HeatMap = function(options) {
 
         //default to searching features if type is not specified
         var data = gpHeatmap.rows.values;
+        var dimension = gpHeatmap.rows;
         if(type === "sample")
         {
             data =  gpHeatmap.cols.values;
+            dimension = gpHeatmap.cols;
         }
 
 
         for(var s = startingIndex;s >= 0;s--)
         {
-            //var isHidden = gpHeatmap.order.indexOf(s) === -1;
+            var isHidden = dimension.order.indexOf(s) === -1;
+
+            if(isHidden)
+            {
+                continue;
+            }
             //data[][0] contains the feature or column names
             var value = data[s][0];
             if(caseSensitive !== undefined && !caseSensitive)
@@ -147,17 +154,17 @@ gpVisual.HeatMap = function(options) {
     /*
      * Returns the index of the feature with matching text in the heatmap
      */
-    this.findNextFeature = function(text, startingIndex)
+    this.findNextFeature = function(text, startingIndex, caseSensitive)
     {
-        return self._findNext(text, startingIndex, "feature");
+        return self._findNext(text, startingIndex, "feature", caseSensitive);
     };
 
     /*
      * Returns the index of the feature with matching text in the heatmap
      */
-    this.findNextSample = function(text, startingIndex)
+    this.findNextSample = function(text, startingIndex, caseSensitive)
     {
-        return self._findNext(text, startingIndex, "sample");
+        return self._findNext(text, startingIndex, "sample", caseSensitive);
     };
 
     /*
@@ -169,13 +176,22 @@ gpVisual.HeatMap = function(options) {
 
         //default to searching features if type is not specified
         var data = gpHeatmap.rows.values;
+        var dimension = gpHeatmap.rows;
         if(type === "sample")
         {
             data =  gpHeatmap.cols.values;
+            dimension = gpHeatmap.cols;
         }
 
         for(var s = startingIndex;s < data.length;s++)
         {
+            var isHidden = dimension.order.indexOf(s) === -1;
+
+            if(isHidden)
+            {
+                continue;
+            }
+
             var value = data[s][0];
             if(caseSensitive !== undefined && !caseSensitive)
             {
