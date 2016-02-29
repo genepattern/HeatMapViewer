@@ -22,6 +22,15 @@ var HeatMapViewer = function()
 
     function load(datasetUrl)
     {
+        //if the URL is an ftp url then fail
+        if(datasetUrl.indexOf("ftp://") === 0)
+        {
+            var errorMsg = "Error: FTP files are not supported.";
+            $("body").empty();
+            $("body").append("<div><p class='error'>" + errorMsg + "</p></div>");
+            return;
+        }
+
         var heatMap = new gpVisual.HeatMap(
         {
             dataUrl: datasetUrl,
@@ -765,5 +774,14 @@ $(function()
 {
     var requestParams = gpUtil.parseQueryString();
     var datasetUrl = requestParams["dataset"];
-    HeatMapViewer.load(datasetUrl);
+    if(datasetUrl !== undefined && datasetUrl.length > 0)
+    {
+        datasetUrl = datasetUrl[0];
+        HeatMapViewer.load(datasetUrl);
+    }
+    else
+    {
+        $("body").empty();
+        $("body").append("<div><p class='error'>Error: Could not locate request param 'dataset'.</p></div>");
+    }
 });
