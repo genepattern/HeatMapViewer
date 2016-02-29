@@ -40,8 +40,8 @@ var HeatMapViewer = function()
             {
                 if(status !== undefined && status.error !== undefined)
                 {
-                    $("#heatmap").empty();
-                    $("#heatmap").append("<p class='error'>Error: " + status.error + "</p>");
+                    $("body").empty();
+                    $("body").append("<p class='error'>Error: " + status.error + "</p>");
                 }
             }
         });
