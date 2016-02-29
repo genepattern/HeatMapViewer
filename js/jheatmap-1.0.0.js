@@ -369,6 +369,7 @@ jheatmap.readers.FeatureLabelsReader = function (p) {
     p = p || {};
     this.url = p.url || "";
     this.separator = p.separator || "\t";
+    this.handleError = p.handleError;
 };
 
 /**
@@ -383,6 +384,7 @@ jheatmap.readers.FeatureLabelsReader.prototype.read = function (result, initiali
 
     var sep = this.separator;
     var url = this.url;
+    var handleError = this.handleError;
 
     var credentials = false;
     if(url.indexOf("https://") === 0)
@@ -405,34 +407,55 @@ jheatmap.readers.FeatureLabelsReader.prototype.read = function (result, initiali
                 result.header = [];
             }
 
-            var lines = file.replace('\r', '').split('\n');
-            //var lines = file.split(/\r|\n/);
+            try
+            {
+               // var lines = file.replace('\r', '').split('\n');
+                var lines = file.split(/\r\n|\r|\n/);
 
-            jQuery.each(lines, function (lineCount, line) {
-                if (line.length > 0 && !line.startsWith("#")) {
-                    if (lineCount == 0)
-                    {
-                        result.header = result.header.concat(line.splitCSV(sep));
-                    }
-                    else
-                    {
-                        var labelLines = line.splitCSV(sep);
-                        for(var v=0; v <labelLines.length;v++)
+                jQuery.each(lines, function (lineCount, line) {
+                    if (line.length > 0 && !line.startsWith("#")) {
+                        if (lineCount == 0)
                         {
-                            if(result.values[v] === undefined)
+                            var labelName = line.splitCSV(sep);
+                            if(result.header !== undefined && $.inArray(labelName, result.header) !== -1)
                             {
-                                result.values[v] = [];
+                                throw("Label " + labelName +  " already exists.");
                             }
+                            result.header = result.header.concat(labelName);
+                        }
+                        else
+                        {
+                            var labelLines = line.splitCSV(sep);
+                            for(var v=0; v <labelLines.length;v++)
+                            {
+                                if(result.values[v] === undefined)
+                                {
+                                    result.values[v] = [];
+                                }
 
-                            result.values[v].push(labelLines[v]);
+                                result.values[v].push(labelLines[v]);
+                            }
                         }
                     }
+                });
+
+                result.ready = true;
+
+                initialize.call(this);
+            }
+            catch(err)
+            {
+                if(err !== undefined && err.length > 0
+                    && handleError != undefined && typeof handleError == 'function')
+                {
+                    var status = {
+                        error: err
+                    };
+
+                    console.log(err);
+                    handleError(status);
                 }
-            });
-
-            result.ready = true;
-
-            initialize.call(this);
+            }
         }
     });
 };
@@ -519,6 +542,7 @@ jheatmap.readers.GctHeatmapReader = function (p) {
     this.url = p.url || "";
     this.separator = p.separator || "\t";
     this.colAnnotationUrl = p.colAnnotationUrl || null;
+    this.handleError = p.handleError;
 
 };
 
@@ -534,6 +558,7 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
     var sep = this.separator;
     var url = this.url;
     var colAnnotationUrl = this.colAnnotationUrl;
+    var handleError = this.handleError;
 
     var credentials = true;
     if(url.indexOf("https://") === 0)
@@ -550,68 +575,98 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
         crossDomain: true,
         success: function (file) {
 
-            var lines = file.replace('\r', '').split('\n');
-            jQuery.each(lines, function (lineCount, line) {
-                if (line.length > 0 && !line.startsWith("#")) {
-                    if (lineCount < 2) {
-                        // skip lines 1,2 with the gct header
-                    } else if (lineCount == 2) {
-                        var headerLine = line.splitCSV(sep);
-                        headerLine.shift();
-                        headerLine.shift();
-                        heatmap.cells.header = headerLine;
-                    } else {
-                        var valLine = line.splitCSV(sep);
-                        heatmap.cells.values[heatmap.cells.values.length] = valLine;
-                    }
-                }
-            });
+            try {
+                //var lines = file.replace('\r', '').split('\n');
+                var lines = file.split(/\r\n|\r|\n/);
 
-            if(heatmap.cols.header === undefined || heatmap.cols.header === null)
+                jQuery.each(lines, function (lineCount, line)
+                {
+                    line = line.trim();
+                    if (line.length > 0)
+                    {
+                        if (lineCount === 0 && line !== "#1.2")
+                        {
+                            throw("Invalid GCT file. Expected '#1.2' on line 1.");
+                        }
+                        if (lineCount == 0 || lineCount === 1)
+                        {
+                            //do nothing
+                        }
+                        else if (lineCount === 2)
+                        {
+                            //parse the third line which contains the sample names
+                            var headerLine = line.splitCSV(sep);
+                            headerLine.shift();
+                            headerLine.shift();
+
+                            if(headerLine.length == 0)
+                            {
+                                throw("No sample names found in GCT file");
+                            }
+
+                            heatmap.cells.header = headerLine;
+                        }
+                        else
+                        {
+                            var valLine = line.splitCSV(sep);
+                            heatmap.cells.values[heatmap.cells.values.length] = valLine;
+                        }
+                    }
+                });
+            }
+            catch(err)
             {
+                if(err !== undefined && err.length > 0
+                    && handleError != undefined && typeof handleError == 'function')
+                {
+                    var status = {
+                        error: err
+                    };
+
+                    console.log(err);
+                    handleError(status);
+                    return;
+                }
+            }
+
+            if (heatmap.cols.header === undefined || heatmap.cols.header === null) {
                 heatmap.cols.header = [];
             }
 
-            heatmap.cols.header.unshift( "Samples" );
-            for (var i = 0; i < heatmap.cells.header.length; i++)
-            {
-                if(heatmap.cols.values !== undefined && heatmap.cols.values[i] != undefined)
-                {
+            heatmap.cols.header.unshift("Samples");
+            for (var i = 0; i < heatmap.cells.header.length; i++) {
+                if (heatmap.cols.values !== undefined && heatmap.cols.values[i] != undefined) {
                     heatmap.cols.values[i].unshift(heatmap.cells.header[i]);
                 }
-                else
-                {
+                else {
                     heatmap.cols.values[heatmap.cols.values.length] = [ heatmap.cells.header[i] ];
                 }
             }
 
             /*heatmap.cols.header = [ "Samples" ];
-            for (var i = 0; i < heatmap.cells.header.length; i++) {
-                heatmap.cols.values[heatmap.cols.values.length] = [ heatmap.cells.header[i] ];
-            }*/
+             for (var i = 0; i < heatmap.cells.header.length; i++) {
+             heatmap.cols.values[heatmap.cols.values.length] = [ heatmap.cells.header[i] ];
+             }*/
 
             var count = 0;
-            var sum =0;
+            var sum = 0;
             var cellValues = [];
             heatmap.rows.header = [ "Feature Name", "Description" ];
             for (var row = 0; row < heatmap.cells.values.length; row++) {
-                heatmap.rows.values[heatmap.rows.values.length] = [ heatmap.cells.values[row][0],  heatmap.cells.values[row][1]];
+                heatmap.rows.values[heatmap.rows.values.length] = [ heatmap.cells.values[row][0], heatmap.cells.values[row][1]];
                 for (var col = 0; col < heatmap.cols.values.length; col++) {
                     cellValues[cellValues.length] = [ heatmap.cells.values[row][col + 2] ];
 
                     //Keep track of minimum and maximum value in each row
                     var value = parseFloat(heatmap.cells.values[row][col + 2]);
-                    if(!isNaN(value))
-                    {
-                        if(heatmap.cells.maxValue == undefined || heatmap.cells.maxValue == null
-                            || heatmap.cells.maxValue < value)
-                        {
+                    if (!isNaN(value)) {
+                        if (heatmap.cells.maxValue == undefined || heatmap.cells.maxValue == null
+                            || heatmap.cells.maxValue < value) {
                             heatmap.cells.maxValue = value;
                         }
 
-                        if(heatmap.cells.minValue == undefined || heatmap.cells.minValue == null
-                            || heatmap.cells.minValue > value)
-                        {
+                        if (heatmap.cells.minValue == undefined || heatmap.cells.minValue == null
+                            || heatmap.cells.minValue > value) {
                             heatmap.cells.minValue = value;
                         }
 
@@ -621,13 +676,13 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
                 }
             }
 
-            heatmap.cells.meanValue =  sum / count;
+            heatmap.cells.meanValue = sum / count;
             delete heatmap.cells.header;
             delete heatmap.cells.values;
             heatmap.cells.header = [ "Value" ];
             heatmap.cells.values = cellValues;
 
-            if (colAnnotationUrl != null){
+            if (colAnnotationUrl != null) {
                 jQuery.ajax({
                     url: colAnnotationUrl,
                     dataType: "text",
@@ -656,6 +711,7 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
                 heatmap.cells.ready = true;
                 initialize.call(this);
             }
+
         }
     });
 };
@@ -675,6 +731,7 @@ jheatmap.readers.ClsReader = function (p) {
     this.url = p.url || "";
     this.separator = p.separator || " ";
     this.label = p.label || "";
+    this.handleError = p.handleError;
 };
 
 /**
@@ -690,6 +747,7 @@ jheatmap.readers.ClsReader.prototype.read = function (result, initialize) {
     var sep = this.separator;
     var url = this.url;
     var label = this.label;
+    var handleError = this.handleError;
 
     var credentials = false;
     if(url.indexOf("https://") === 0)
@@ -707,63 +765,81 @@ jheatmap.readers.ClsReader.prototype.read = function (result, initialize) {
         crossDomain: true,
         success: function (file) {
 
-            if(result.header == undefined )
-            {
-                result.header = [];
-            }
+            try {
+                if (result.header == undefined) {
+                    result.header = [];
+                }
 
-            if(label == undefined || label.length < 1)
-            {
-                var filename = url.split("/");
-                result.header.push(filename[filename.length-1]);
-            }
-            else
-            {
-                result.header.push(label);
-            }
+                if (label === undefined || label.length < 1)
+                {
+                    var filename = url.split("/");
 
-            if(result.values === undefined)
-            {
-                result.values = [];
-            }
-
-            var classLabels = [];
-            var lines = file.replace('\r', '').split('\n');
-            jQuery.each(lines, function (lineCount, line) {
-                line = line.trim();
-                if (line.length > 0 && lineCount > 0) {
-                    if (lineCount == 1 && line.startsWith("#"))
+                    if(filename !== undefined && filename.length > 1)
                     {
-                        //the is the line that has the class names
-                        classLabels = line.splitCSV(sep);
-                        classLabels = classLabels.slice(1);
-                    }
-
-                    if(lineCount > 1)
-                    {
-                        var labelLines = line.splitCSV(sep);
-                        for(var v=0; v <labelLines.length;v++)
-                        {
-                            if(result.values[v] === undefined)
-                            {
-                                result.values[v] = [];
-                            }
-
-                            var classLabel = labelLines[v];
-                            var classNum = parseInt(labelLines[v]);
-                            if(!isNaN(classNum) && classNum < classLabels.length)
-                            {
-                                classLabel = classLabels[classNum];
-                            }
-                            result.values[v].push(classLabel);
-                        }
+                        label = filename[filename.length - 1];
                     }
                 }
-            });
 
-            result.ready = true;
+                //check for duplicate header labels
+                if ($.inArray(label, result.header) !== -1)
+                {
+                    throw("Label " + label + " already exists.");
+                }
 
-            initialize.call(this);
+                result.header.push(label);
+
+                if (result.values === undefined) {
+                    result.values = [];
+                }
+
+                var classLabels = [];
+                //var lines = file.replace('\r', '').split('\n');
+                var lines = file.split(/\r\n|\n|\r/);
+
+                jQuery.each(lines, function (lineCount, line) {
+                    line = line.trim();
+                    if (line.length > 0 && lineCount > 0) {
+                        if (lineCount == 1 && line.startsWith("#")) {
+                            //the is the line that has the class names
+                            classLabels = line.splitCSV(sep);
+                            classLabels = classLabels.slice(1);
+                        }
+
+                        if (lineCount > 1) {
+                            var labelLines = line.splitCSV(sep);
+                            for (var v = 0; v < labelLines.length; v++) {
+                                if (result.values[v] === undefined) {
+                                    result.values[v] = [];
+                                }
+
+                                var classLabel = labelLines[v];
+                                var classNum = parseInt(labelLines[v]);
+                                if (!isNaN(classNum) && classNum < classLabels.length) {
+                                    classLabel = classLabels[classNum];
+                                }
+                                result.values[v].push(classLabel);
+                            }
+                        }
+                    }
+                });
+
+                result.ready = true;
+
+                initialize.call(this);
+            }
+            catch(err)
+            {
+                if(err !== undefined && err.length > 0
+                    && handleError != undefined && typeof handleError == 'function')
+                {
+                    var status = {
+                        error: err
+                    };
+
+                    console.log(err);
+                    handleError(status);
+                }
+            }
         }
     });
 };

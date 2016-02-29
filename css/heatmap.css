@@ -219,7 +219,7 @@ td.border
     border-collapse: collapse;
 }
 
-#labelTable th, #labelTable td
+#labelTable td
 {
     padding: 8px;
     text-align: left;
@@ -232,6 +232,10 @@ td.border
 #labelTable th
 {
     background-color: lightgrey;
+    padding: 0;
+    margin: 0;
+    height: 25px;
+    max-height: 25px;
 }
 
 #labelDetailsTable
@@ -243,12 +247,18 @@ td.border
 #labelDetailsTable td
 {
     padding: 2px;
-    /*border-bottom: 1px solid #ddd;*/
 }
 
 #newLabelFileName
 {
     font-size: 14px;
+}
+
+#labelTable
+{
+    height: 150px;
+    max-height: 150px;
+    overflow: auto;
 }
 
 #caseSensitiveDiv
@@ -299,5 +309,15 @@ ul#hiddenMatchesList
 {
     margin-left: 10px;
     vertical-align: bottom;
+}
+
+.error
+{
+    color: red;
+}
+
+.errorDialog div
+{
+  max-height: 200px;
 }
 

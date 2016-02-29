@@ -68,12 +68,9 @@ gpVisual.HeatMap = function(options) {
             {
                 values: new jheatmap.readers.GctHeatmapReader(
                 {
-                    url: datasetUrl
-                })/*,
-                error: function(msg)
-                {
-
-                }*/
+                    url: datasetUrl,
+                    handleError: options.onLoadData
+                })
             },
             init: function (heatmap)
             {
@@ -342,7 +339,7 @@ gpVisual.HeatMap = function(options) {
     };
 
 
-    this.addFeatureLabels = function(featureLabelsUrl)
+    this.addFeatureLabels = function(featureLabelsUrl, callback)
     {
         var currentFeatureLabels = gpHeatmap.rows.header.slice();
 
@@ -374,7 +371,8 @@ gpVisual.HeatMap = function(options) {
 
         var addFLabels = new jheatmap.readers.FeatureLabelsReader(
             {
-                url: featureLabelsUrl
+                url: featureLabelsUrl,
+                handleError: callback
             });
 
         addFLabels.read(gpHeatmap.rows, featureLabelsAdded);
@@ -478,29 +476,38 @@ gpVisual.HeatMap = function(options) {
         }
     };
 
-    this.addSampleLabels = function(clsUrl, label)
+    this.addSampleLabels = function(clsUrl, label, callback)
     {
         //add class labels
-        var clsAdded = function()
+        var clsAdded = function(status)
         {
-            var labelIndex = $.inArray(label, gpHeatmap.cols.header);
-
-            if(gpHeatmap.cols.annotations === undefined)
+            /*if(callback !== undefined && typeof callback == 'function' &&
+                status !== undefined && status.error !== undefined)
             {
-                gpHeatmap.cols.annotations = [];
+                callback(status);
             }
+            else
+            {*/
+                var labelIndex = $.inArray(label, gpHeatmap.cols.header);
 
-            gpHeatmap.cols.decorators[labelIndex] = new jheatmap.decorators.CategoricalRandom();
-            gpHeatmap.cols.annotations.push(labelIndex);
+                if(gpHeatmap.cols.annotations === undefined)
+                {
+                    gpHeatmap.cols.annotations = [];
+                }
 
-            self.drawHeatMap();
+                gpHeatmap.cols.decorators[labelIndex] = new jheatmap.decorators.CategoricalRandom();
+                gpHeatmap.cols.annotations.push(labelIndex);
+
+                self.drawHeatMap();
+            //}
         };
 
         var addCls = new jheatmap.readers.ClsReader(
-            {
-                url: clsUrl,
-                label: label
-            });
+        {
+            url: clsUrl,
+            label: label,
+            handleError: callback
+        });
 
         addCls.read(gpHeatmap.cols, clsAdded);
     };

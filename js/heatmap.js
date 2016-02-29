@@ -2,13 +2,13 @@ var HeatMapViewer = function()
 {
     function showErrorMessage(msg, title)
     {
-        var errorDialog = $( "<div/>" ).dialog(
+        var errorDialog = $( "<div/>" ).addClass("errorDialog").dialog(
         {
             title: title,
-            minHeight: 140,
+            minHeight: 240,
             create: function ()
             {
-                $(this).append("<p>" + msg +"</p>");
+                $(this).append("<div><p>" + msg +"</p></div>");
             },
             buttons:
             {
@@ -26,7 +26,15 @@ var HeatMapViewer = function()
         {
             dataUrl: datasetUrl,
             container: $("#heatmap"),
-            showLegend: true
+            showLegend: true,
+            onLoadData: function(status)
+            {
+                if(status !== undefined && status.error !== undefined)
+                {
+                    $("#heatmap").empty();
+                    $("#heatmap").append("<p class='error'>Error: " + status.error + "</p>");
+                }
+            }
         });
 
         var MAX_ZOOM = 80;
@@ -402,10 +410,17 @@ var HeatMapViewer = function()
                 $("#removeFsLabelsDiv").empty();
 
                 var removeLabelTable = $("<table/>").attr("id", "labelTable");
-                removeLabelTable.append("<th colspan='3'>Current Labels</th>");
+                removeLabelTable.append("<tr><th colspan='3'>Current Labels</th></tr>");
+                removeLabelTable.append("<tr><td>Label</td><td>Remove</td><td></td></tr>");
                 for (var f = 0; f < labels.length; f++) {
                     var removeLabelTr = $("<tr/>");
-                    removeLabelTr.append("<td>" + labels[f] + "</td>");
+
+                    var displayLabel = labels[f];
+                    if(displayLabel.length > 170)
+                    {
+                        displayLabel = displayLabel.substring(0, 150) + "...";
+                    }
+                    removeLabelTr.append("<td>" + displayLabel + "</td>");
 
                     var delCheckbox = $("<input type='checkbox'>").click(function () {
                         var removeLabels = $(this).parents(".labelDialog").data("removeLabels");
@@ -442,6 +457,7 @@ var HeatMapViewer = function()
 
                         if (labelDetailsSize == 0)
                         {
+                            console.log("Error: no labels to edit");
                             showErrorMessage("Error: no labels to edit", "Edit Labels Error");
                             return;
                         }
@@ -507,22 +523,17 @@ var HeatMapViewer = function()
                                 }
                             }
                         });
-
                     });
 
                     $("<td/>").append(editColors).appendTo(removeLabelTr);
                     removeLabelTable.append(removeLabelTr);
-
-
-                    if (labels.length > 0) {
-                        removeLabelTable.prepend("<tr><td>Label</td><td>Remove</td><td></td></tr>");
-                        //$("#removeFsLabelsDiv").prepend("<h4>Current Labels</h4>");
-                        $("#removeFsLabelsDiv").append(removeLabelTable);
-                        $("#removeFsLabelsDiv").show();
-                    }
-                    else {
-                        $("#removeFsLabelsDiv").hide();
-                    }
+                }
+                if (labels.length > 0) {
+                    $("#removeFsLabelsDiv").append(removeLabelTable);
+                    $("#removeFsLabelsDiv").show();
+                }
+                else {
+                    $("#removeFsLabelsDiv").hide();
                 }
             };
 
@@ -544,14 +555,24 @@ var HeatMapViewer = function()
             labelDialog.dialog(
             {
                 title: "Add/Edit Labels",
-                minWidth: 350,
-                minHeight: 250,
+                minWidth: 450,
+                minHeight: 260,
+                maxHeight: 350,
                 modal: true,
                 create: function () {
                     $("#samplesLabel").click();
                 },
                 buttons: {
-                    OK: function () {
+                    OK: function ()
+                    {
+                        var handleError = function(result)
+                        {
+                            if(result !== undefined && result.error != undefined && result.error.length > 0)
+                            {
+                                showErrorMessage(result.error);
+                            }
+                        };
+
                         if ($('#labelFile').get(0).files.length > 0) {
                             var file = $('#labelFile').get(0).files[0];
 
@@ -560,10 +581,11 @@ var HeatMapViewer = function()
                             var labelType = $("input[name='fsLabels']:checked").val();
 
                             if (labelType === "features") {
-                                heatMap.addFeatureLabels(fileUrl);
+                                heatMap.addFeatureLabels(fileUrl, handleError);
                             }
                             else {
-                                heatMap.addSampleLabels(fileUrl, file.name);
+
+                                heatMap.addSampleLabels(fileUrl, file.name, handleError);
                             }
 
                             $('#labelFile').val("");
