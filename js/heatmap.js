@@ -26,7 +26,7 @@ var HeatMapViewer = function()
         if(datasetUrl.indexOf("ftp://") === 0)
         {
             var errorMsg = "Error: FTP files are not supported.";
-            $("body").empty();
+            $("#toolBarHeatmapMain").remove();
             $("body").append("<div><p class='error'>" + errorMsg + "</p></div>");
             return;
         }
@@ -40,7 +40,7 @@ var HeatMapViewer = function()
             {
                 if(status !== undefined && status.error !== undefined)
                 {
-                    $("body").empty();
+                    $("#toolBarHeatmapMain").remove();
                     $("body").append("<p class='error'>Error: " + status.error + "</p>");
                 }
             }
@@ -789,11 +789,27 @@ $(function()
     if(datasetUrl !== undefined && datasetUrl.length > 0)
     {
         datasetUrl = datasetUrl[0];
+
+        if(datasetUrl == "ftp://ftp.broadinstitute.org/pub/genepattern/datasets/protocols/all_aml_test.preprocessed.gct")
+        {
+            datasetUrl = "https://www.broadinstitute.org/cancer/software/genepattern/data/protocols/all_aml_test.preprocessed.gct";
+        }
+
+        if(datasetUrl == "ftp://ftp.broadinstitute.org/pub/genepattern/datasets/protocols/all_aml_train.gct")
+        {
+            datasetUrl = "https://www.broadinstitute.org/cancer/software/genepattern/data/protocols/all_aml_train.gct";
+        }
+
+        if(datasetUrl == "ftp://ftp.broadinstitute.org/pub/genepattern/datasets/protocols/all_aml_test.gct")
+        {
+            datasetUrl = "https://www.broadinstitute.org/cancer/software/genepattern/data/protocols/all_aml_test.gct";
+        }
+
         HeatMapViewer.load(datasetUrl);
     }
     else
     {
-        $("body").empty();
+        $("#toolBarHeatmapMain").remove();
         $("body").append("<div><p class='error'>Error: Could not locate request param 'dataset'.</p></div>");
     }
 });
