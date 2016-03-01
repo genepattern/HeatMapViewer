@@ -416,24 +416,32 @@ jheatmap.readers.FeatureLabelsReader.prototype.read = function (result, initiali
                     if (line.length > 0 && !line.startsWith("#")) {
                         if (lineCount == 0)
                         {
-                            var labelName = line.splitCSV(sep);
-                            if(result.header !== undefined && $.inArray(labelName, result.header) !== -1)
+                            var labelNames = line.splitCSV(sep);
+
+
+                            for(var i=0;i<labelNames.length;i++)
                             {
-                                throw("Label " + labelName +  " already exists.");
+                                if(result.header !== undefined && $.inArray(labelNames[i], result.header) !== -1)
+                                {
+                                    throw("Label " + labelNames[i] +  " already exists.");
+                                }
+                                else {
+                                   result.header.push(labelNames[i]);
+                                }
                             }
-                            result.header = result.header.concat(labelName);
                         }
                         else
                         {
                             var labelLines = line.splitCSV(sep);
                             for(var v=0; v <labelLines.length;v++)
                             {
-                                if(result.values[v] === undefined)
+                                var index = lineCount -1;;
+                                if(result.values[index] === undefined)
                                 {
-                                    result.values[v] = [];
+                                    result.values[index] = [];
                                 }
 
-                                result.values[v].push(labelLines[v]);
+                                result.values[index].push(labelLines[v]);
                             }
                         }
                     }
