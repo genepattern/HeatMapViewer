@@ -2600,7 +2600,8 @@ jheatmap.components.CellBodyPanel = function(drawer, heatmap) {
     };
 
     // Bind events
-    this.canvas.bind('mousewheel', function (e, delta, deltaX, deltaY) {
+    //disabling mouse wheel - Marc-Danie
+    /*this.canvas.bind('mousewheel', function (e, delta, deltaX, deltaY) {
         e.preventDefault();
 
         if (e.shiftKey) {
@@ -2632,7 +2633,7 @@ jheatmap.components.CellBodyPanel = function(drawer, heatmap) {
 	         drawer.paint();
 
         }
-    });
+    });*/
     this.canvas.bind('gesturechange', function (e) {
         onGestureChange(e);
     });
@@ -3309,7 +3310,7 @@ jheatmap.components.ColumnHeaderPanel = function(drawer, heatmap) {
         drawer.paint();
      });
 
-     this.canvas.bind('mousewheel', function (e, delta, deltaX, deltaY) {
+     /*this.canvas.bind('mousewheel', function (e, delta, deltaX, deltaY) {
               e.preventDefault();
 
               if (e.shiftKey) {
@@ -3334,7 +3335,7 @@ jheatmap.components.ColumnHeaderPanel = function(drawer, heatmap) {
               }
 
               drawer.paint();
-     });
+     });*/
 
      this.canvas.bind('mouseover', function(e) {
          drawer.handleFocus(e);
@@ -4114,7 +4115,7 @@ jheatmap.components.RowHeaderPanel = function(drawer, heatmap) {
        drawer.paint();
     });
 
-    this.canvas.bind('mousewheel', function (e, delta, deltaX, deltaY) {
+    /*this.canvas.bind('mousewheel', function (e, delta, deltaX, deltaY) {
          e.preventDefault();
 
          if (e.shiftKey) {
@@ -4137,7 +4138,7 @@ jheatmap.components.RowHeaderPanel = function(drawer, heatmap) {
 	         heatmap.offset.top = heatmap.offset.top - delta * momentum;
 	     }
          drawer.paint();
-    });
+    });*/
 
     this.canvas.bind('mouseover', function(e) {
         drawer.handleFocus(e);
