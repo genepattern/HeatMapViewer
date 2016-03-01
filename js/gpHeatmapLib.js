@@ -526,6 +526,19 @@ gpVisual.HeatMap = function(options) {
             gpHeatmap.cols.header.splice(labelIndex, 1);
 
             var annIndex = $.inArray(labelIndex, gpHeatmap.cols.annotations);
+
+            //now subtract 1 from the annotations if this is not the last item in the list
+            if(annIndex !== gpHeatmap.cols.annotations.length - 1)
+            {
+                for(var a=0; a<gpHeatmap.cols.annotations.length; a++)
+                {
+                    var num = parseInt(gpHeatmap.cols.annotations[a]);
+                    if(!isNaN(num))
+                    {
+                        gpHeatmap.cols.annotations[a] = num - 1;
+                    }
+                }
+            }
             gpHeatmap.cols.annotations.splice(annIndex, 1);
 
             //remove the values as well
