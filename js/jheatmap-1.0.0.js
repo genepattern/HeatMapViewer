@@ -579,6 +579,11 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
                 //var lines = file.replace('\r', '').split('\n');
                 var lines = file.split(/\r\n|\r|\n/);
 
+                if(file == "")
+                {
+                    throw("Dataset is too large to load.");
+                }
+
                 jQuery.each(lines, function (lineCount, line)
                 {
                     line = line.trim();
