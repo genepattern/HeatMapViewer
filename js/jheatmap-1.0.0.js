@@ -1744,7 +1744,7 @@ jheatmap.aggregators.Addition = function () {
 jheatmap.aggregators.Addition.prototype.accumulate = function (values) {
     var sum = 0;
     for (var i = 0; i < values.length; i++) {
-        var value = values[i];
+        var value = parseFloat(values[i]);
         if (value && !isNaN(value)) {
             sum += value;
         }
