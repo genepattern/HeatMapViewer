@@ -216,12 +216,17 @@ td.border
 
 #labelTable
 {
+    height: 150px;
+    max-height: 150px;
+    /*overflow: auto;*/
     border-collapse: collapse;
 }
 
 #labelTable td
 {
-    padding: 8px;
+    padding: 2px;
+    height: 10px;
+    max-height: 10px;
     text-align: left;
     border-bottom: 1px solid #ddd;
     border-top: 1px solid #ddd;
@@ -234,8 +239,8 @@ td.border
     background-color: lightgrey;
     padding: 0;
     margin: 0;
-    height: 25px;
-    max-height: 25px;
+    height: 20px;
+    max-height: 20px;
 }
 
 #labelDetailsTable
@@ -252,13 +257,6 @@ td.border
 #newLabelFileName
 {
     font-size: 14px;
-}
-
-#labelTable
-{
-    height: 150px;
-    max-height: 150px;
-    overflow: auto;
 }
 
 #caseSensitiveDiv

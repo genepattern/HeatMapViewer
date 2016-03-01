@@ -387,6 +387,19 @@ gpVisual.HeatMap = function(options) {
             gpHeatmap.rows.header.splice(labelIndex, 1);
 
             var annIndex = $.inArray(labelIndex, gpHeatmap.rows.annotations);
+
+            //now subtract 1 from the annotations if this is not the last item in the list
+            if(annIndex !== gpHeatmap.rows.annotations.length - 1)
+            {
+                for(var a=0; a<gpHeatmap.rows.annotations.length; a++)
+                {
+                    var num = parseInt(gpHeatmap.rows.annotations[a]);
+                    if(!isNaN(num))
+                    {
+                        gpHeatmap.rows.annotations[a] = num - 1;
+                    }
+                }
+            }
             gpHeatmap.rows.annotations.splice(annIndex, 1);
 
             //remove the values as well
@@ -479,27 +492,19 @@ gpVisual.HeatMap = function(options) {
     this.addSampleLabels = function(clsUrl, label, callback)
     {
         //add class labels
-        var clsAdded = function(status)
+        var clsAdded = function()
         {
-            /*if(callback !== undefined && typeof callback == 'function' &&
-                status !== undefined && status.error !== undefined)
+            var labelIndex = $.inArray(label, gpHeatmap.cols.header);
+
+            if(gpHeatmap.cols.annotations === undefined)
             {
-                callback(status);
+                gpHeatmap.cols.annotations = [];
             }
-            else
-            {*/
-                var labelIndex = $.inArray(label, gpHeatmap.cols.header);
 
-                if(gpHeatmap.cols.annotations === undefined)
-                {
-                    gpHeatmap.cols.annotations = [];
-                }
+            gpHeatmap.cols.decorators[labelIndex] = new jheatmap.decorators.CategoricalRandom();
+            gpHeatmap.cols.annotations.push(labelIndex);
 
-                gpHeatmap.cols.decorators[labelIndex] = new jheatmap.decorators.CategoricalRandom();
-                gpHeatmap.cols.annotations.push(labelIndex);
-
-                self.drawHeatMap();
-            //}
+            self.drawHeatMap();
         };
 
         var addCls = new jheatmap.readers.ClsReader(
@@ -533,7 +538,6 @@ gpVisual.HeatMap = function(options) {
             hRes.paint(null, true, true);
         }
     };
-
 
     this.getDefaultZoomLevel = function()
     {

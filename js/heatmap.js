@@ -420,7 +420,7 @@ var HeatMapViewer = function()
 
                 var removeLabelTable = $("<table/>").attr("id", "labelTable");
                 removeLabelTable.append("<tr><th colspan='3'>Current Labels</th></tr>");
-                removeLabelTable.append("<tr><td>Label</td><td>Remove</td><td></td></tr>");
+                removeLabelTable.append("<tr><td><h4>Label</h4></td><td><h4>Remove</h4></td><td></td></tr>");
                 for (var f = 0; f < labels.length; f++) {
                     var removeLabelTr = $("<tr/>");
 
@@ -437,8 +437,19 @@ var HeatMapViewer = function()
                             removeLabels = [];
                         }
 
-                        var selectedLabel = $(this).data("label");
-                        removeLabels.push(selectedLabel);
+                        var currentLabel = $(this).data("label");
+
+                        var matchIndex = $.inArray(currentLabel, removeLabels);
+                        if(matchIndex != -1)
+                        {
+                            removeLabels.splice(matchIndex, 1);
+                        }
+
+                        if($(this).is(":checked"))
+                        {
+                            removeLabels.push(currentLabel);
+                        }
+
                         $(this).parents(".labelDialog").data("removeLabels", removeLabels);
                     });
 
@@ -479,7 +490,8 @@ var HeatMapViewer = function()
                         {
                             title: "Edit Label",
                             minWidth: 290,
-                            minHeight: 210,
+                            minHeight: 240,
+                            maxHeight: 340,
                             modal: true,
                             create: function()
                             {
@@ -565,7 +577,7 @@ var HeatMapViewer = function()
             {
                 title: "Add/Edit Labels",
                 minWidth: 450,
-                minHeight: 260,
+                minHeight: 290,
                 maxHeight: 350,
                 modal: true,
                 create: function () {

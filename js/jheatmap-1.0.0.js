@@ -435,7 +435,7 @@ jheatmap.readers.FeatureLabelsReader.prototype.read = function (result, initiali
                             var labelLines = line.splitCSV(sep);
                             for(var v=0; v <labelLines.length;v++)
                             {
-                                var index = lineCount -1;;
+                                var index = lineCount -1;
                                 if(result.values[index] === undefined)
                                 {
                                     result.values[index] = [];
