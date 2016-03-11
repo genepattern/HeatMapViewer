@@ -54,7 +54,7 @@ var HeatMapViewer = function()
         var datasetFileName = parser[0].pathname.substring(parser[0].pathname.lastIndexOf('/')+1);
 
         $("#fileLoaded").empty();
-        $("#fileLoaded").append("<span>Loaded: <a href='" + datasetUrl + "'>" + datasetFileName + "</a></span>");
+        $("#fileLoaded").append("<span>Loaded: <a href='" + datasetUrl + "'>" + decodeURIComponent(datasetFileName) + "</a></span>");
 
         $("#options").button().click(function (event)
         {
