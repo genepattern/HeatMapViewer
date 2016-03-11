@@ -330,10 +330,15 @@ var gpLib = function() {
 
     function isGenomeSpaceFile(fileUrl)
     {
+        if(fileUrl === undefined && fileUrl === null)
+        {
+            return false;
+        }
+
         var parser = $('<a/>');
         parser.attr("href", fileUrl);
 
-        if(parser[0].hostname.indexOf("genomespace.org") != -1)
+        if(parser[0].hostname !== undefined && parser[0].hostname.indexOf("genomespace.org") !== -1)
         {
             return true;
         }
