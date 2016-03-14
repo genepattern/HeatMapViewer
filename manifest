@@ -1,7 +1,7 @@
 #Tue, 27 Oct 2015 16:51:00 -0400
 userid=GenePattern
 author=GenePattern
-version=Includes improved error checking, searching and file parsing. Fixed removal of feature and sample labels. Added ability to reload heatmap.
+version=Includes bug fixes with searching and displaying of loaded input file
 taskType=javascript
 taskDoc=doc.html
 publicationDate=10/27/2015 16\:51 
