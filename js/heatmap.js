@@ -20,6 +20,34 @@ var HeatMapViewer = function()
         });
     }
 
+    function _retrieveFinalGSUrl(fileUrl, options)
+    {
+
+        fileUrl += "?endpointurl=true";
+        $.ajax({
+            contentType: null,
+            url: fileUrl,
+            xhrFields: {
+                withCredentials: true
+            },
+            dataType: "json",
+            crossDomain: true
+        }).done(function (response, status, xhr) {
+            if(options != undefined && $.isFunction(options.successCallBack))
+            {
+                options.successCallBack(response);
+            }
+            _loadUrl(response.endpoint);
+        }).fail(function (response, status, xhr)
+        {
+            console.log(response.statusText);
+            if(options !== undefined && $.isFunction(options.failCallBack))
+            {
+                options.failCallBack(response.statusText, response);
+            }
+        });
+    }
+
     function load(datasetUrl)
     {
         //if the URL is an ftp url then fail
@@ -688,7 +716,8 @@ var HeatMapViewer = function()
                             var findText = $("#findText").val();
                             var findType = $("input[name='findType']:checked").val();
                             var startIndex = $(this).data("lastFindIndex");
-                            if(startIndex == undefined || startIndex == -1)
+
+                            if(startIndex == undefined)
                             {
                                 startIndex = 0;
                             }
@@ -697,26 +726,25 @@ var HeatMapViewer = function()
                                 startIndex = startIndex - 1;
                             }
 
-                            var caseSensitive = $("#findTextCaseSenstive").is(":checked");
+                            var caseSensitive = $("#findTextCaseSensitive").is(":checked");
 
-                            var lastIndex = -1;
+                            var matchResults = {};
                             if(findType == "samples")
                             {
-                                lastIndex = heatMap.findPreviousSample(findText, startIndex, caseSensitive);
+                                matchResults = heatMap.findPreviousSample(findText, startIndex, caseSensitive);
                             }
                             else
                             {
-                                lastIndex = heatMap.findPreviousFeature(findText, startIndex, caseSensitive);
+                                matchResults = heatMap.findPreviousFeature(findText, startIndex, caseSensitive);
                             }
 
+                            var lastIndex = matchResults.matchIndex;
                             if(lastIndex == -1)
                             {
                                 showErrorMessage("No matches found", "Find Error");
                             }
-                            else
-                            {
-                                $(this).data("lastFindIndex",lastIndex);
-                            }
+
+                            $(this).data("lastFindIndex",lastIndex);
                         }
                     },
                     "Next": {
@@ -736,7 +764,6 @@ var HeatMapViewer = function()
                             var caseSensitive = $("#findTextCaseSensitive").is(":checked");
 
                             var matchResults = {};
-                            var lastIndex = -1;
                             if (findType == "samples") {
                                 matchResults = heatMap.findNextSample(findText, startIndex, caseSensitive);
                             }
@@ -744,7 +771,7 @@ var HeatMapViewer = function()
                                 matchResults = heatMap.findNextFeature(findText, startIndex, caseSensitive);
                             }
 
-                            lastIndex = matchResults.matchIndex;
+                            var lastIndex = matchResults.matchIndex;
                             if (lastIndex == -1) {
                                 showErrorMessage("No matches found", "Find Error");
                             }
@@ -756,9 +783,9 @@ var HeatMapViewer = function()
                                     //add to list of hidden matches
                                     $("#hiddenMatchesList").append("<li>" + matchResults.match + "</li>");
                                 }
-
-                                $(this).data("lastFindIndex", lastIndex);
                             }
+
+                            $(this).data("lastFindIndex", lastIndex);
                         }
                     },
                     "Close": {

@@ -130,7 +130,7 @@ gpVisual.HeatMap = function(options) {
                 value = value.toLowerCase();
             }
 
-            if(value.indexOf(searchText) != -1)
+            if(value.indexOf(searchText) !== -1)
             {
                 if(!isHidden)
                 {
@@ -157,6 +157,22 @@ gpVisual.HeatMap = function(options) {
         return {
             matchIndex: -1
         };
+    };
+
+    /*
+     * Returns the number of samples in the heatmap
+     */
+    this.getNumSamples = function()
+    {
+        return gpHeatmap.cols.values ? gpHeatmap.cols.values.length: 0;
+    };
+
+    /*
+     * Returns the number of features in the heatmap
+     */
+    this.getNumFeatures = function()
+    {
+        return gpHeatmap.rows.values ? gpHeatmap.rows.values.length: 0;
     };
 
     /*
@@ -191,6 +207,11 @@ gpVisual.HeatMap = function(options) {
             dimension = gpHeatmap.cols;
         }
 
+        /*if(startingIndex > data.length)
+        {
+            startingIndex = 0;
+        }*/
+
         for(var s = startingIndex;s < data.length;s++)
         {
             var isHidden = dimension.order.indexOf(s) === -1;
@@ -202,7 +223,7 @@ gpVisual.HeatMap = function(options) {
                 value = value.toLowerCase();
             }
 
-            if(value.indexOf(searchText) != -1)
+            if(value.indexOf(searchText) !== -1)
             {
                 if(!isHidden)
                 {
@@ -227,6 +248,10 @@ gpVisual.HeatMap = function(options) {
             }
         }
 
+        if(startingIndex !== 0)
+        {
+
+        }
         self._unSelectAll(type);
 
         return  {
