@@ -109,7 +109,7 @@ var HeatMapViewer = function()
                             {
                                 var hexColor = (new jheatmap.utils.RGBColor(hColors[index])).toHex();
 
-                                $($(".gradientColor").get(index)).val(hexColor);
+                                $($(".gradientColor").get(index)).spectrum("set", hexColor);
                                 index++;
                             }
                         }))
