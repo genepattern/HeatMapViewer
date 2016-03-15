@@ -228,7 +228,7 @@ var gpLib = function() {
     {
         var data = {};
 
-        var lines = fileContents.split(/\n/);
+        var lines = fileContents.split(/\r\n|\r|\n/);
 
         if(lines.length < 2)
         {
