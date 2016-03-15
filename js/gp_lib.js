@@ -197,7 +197,7 @@ var gpLib = function() {
             rowDescriptions: [],
             matrix: [[]]
         };
-        var lines = fileContents.split(/\n/);
+        var lines = fileContents.split(/\r\n|\r|\n/); //fileContents.split(/\r|\n/);
 
         if(lines.length >= 4 && lines[0].indexOf("#1.2") != -1)
         {
@@ -212,6 +212,7 @@ var gpLib = function() {
             {
                 var rowData = lines[r].split(/\t/);
                 data.rowNames.push(rowData[0]);
+                data.rowDescriptions.push(rowData[1]);
                 data.matrix[r-3] = rowData.slice(2).map(Number);
             }
         }
