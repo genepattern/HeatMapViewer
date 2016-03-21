@@ -548,6 +548,7 @@ jheatmap.readers.AnnotationReader.prototype.read = function (result, initialize)
 jheatmap.readers.GctHeatmapReader = function (p) {
     p = p || {};
     this.url = p.url || "";
+    this.xhrFields = p.xhrFields || null;
     this.separator = p.separator || "\t";
     this.colAnnotationUrl = p.colAnnotationUrl || null;
     this.handleError = p.handleError;
@@ -568,21 +569,27 @@ jheatmap.readers.GctHeatmapReader.prototype.read = function (heatmap, initialize
     var colAnnotationUrl = this.colAnnotationUrl;
     var handleError = this.handleError;
 
+    var xhrFields = {};
+
     var credentials = true;
     if(url.indexOf("https://") === 0)
     {
-        credentials = true;
+        xhrFields = {
+            withCredentials: true
+        };
+    }
+
+    if(this.xhrFields !== null)
+    {
+        xhrFields =  this.xhrFields;
     }
 
     jQuery.ajax({
         url: url,
         dataType: "text",
-        xhrFields: {
-            withCredentials: credentials
-        },
+        xhrFields: xhrFields,
         crossDomain: true,
         success: function (file) {
-
             try {
                 //var lines = file.replace('\r', '').split('\n');
                 var lines = file.split(/\r\n|\r|\n/);
