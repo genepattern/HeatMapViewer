@@ -1,7 +1,7 @@
 #Tue, 27 Oct 2015 16:51:00 -0400
 userid=GenePattern
 author=GenePattern
-version=Modified to be a javascript visualizer
+version=Initial beta release
 taskType=javascript
 taskDoc=doc.html
 publicationDate=10/27/2015 16\:51 
@@ -9,7 +9,7 @@ description=A configurable heat map viewer that provides users with several opti
 os=any
 cpuType=any
 commandLine=heatmap.html ? <dataset>
-quality=production
+quality=development
 JVMLevel=
 language=HTML,JQuery
 name=HeatMapViewer
@@ -20,7 +20,7 @@ p1_prefix_when_specified=
 p1_fileFormat=res;gct;odf;Dataset
 p1_MODE=IN
 p1_value=
-p1_description=The dataset to display - .gct, .res, .odf
+p1_description=The dataset to display - .gct
 p1_optional=
 p1_name=dataset
 p1_default_value=

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="css/jheatmap-1.0.0.css" rel="stylesheet" type="text/css"/>
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+    <link href="//code.jquery.com/ui/1.11.4/themes/redmond/jquery-ui.css" rel="stylesheet" type="text/css"/>
+    <link rel="stylesheet" type="text/css" href="css/spectrum.css"/>
+    <link href="css/heatmap.css" rel="stylesheet" type="text/css"/>
+
+    <!-- You must include the jQuery library -->
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script type="text/javascript" src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+
+    <script type="text/javascript" src="js/gp_lib.js"></script>
+    <script type="text/javascript" src="js/gpUtil.js"></script>
+    <script type="text/javascript" src="js/FileSaver.js"></script>
+    <script type="text/javascript" src="js/html2canvas.js"></script>
+    <script type="text/javascript" src="js/canvas-to-blob.js"></script>
+    <script type="text/javascript" src="js/canvas2svg.js"></script>
+    <script type="text/javascript" src="js/rgbcolor.js"></script>
+    <script type="text/javascript" src="js/canvg.js"></script>
+    <script src="js/spectrum.js"></script>
+    <script type="text/javascript" src="js/jheatmap-1.0.0.js"></script>
+    <script type="text/javascript" src="js/gpHeatmapLib.js"></script>
+    <script type="text/javascript" src="js/heatmap.js"></script>
+
+    <script>
+        // The initialization code goes here, see next steps.
+    </script>
+</head>
+<body>
+    <div id="fileLoaded"></div>
+
+    <div id="toolBarHeatmapMain">
+        <div id="toolbar">
+            <button id="zoomIn" title="Zoom In" ><i class="fa fa-plus fa-lg"></i></button>
+            <button id="zoomOut" title="Zoom Out" ><i class="fa fa-minus fa-lg"></i></button>
+            <button id="resetZoom" title="Reset Zoom" >100%</button>
+            <button id="reload" title="Reload" ><i class="fa fa-refresh fa-lg"></i></button>
+            <button id="options" title="Options" ><i class="fa fa-cog fa-lg"></i></button>
+            <button id="saveImage" title="Save Image" ><i class="fa fa-save fa-lg"></i></button>
+            <button id="addLabels" title="Add/Edit labels" ><i class="fa fa-barcode fa-lg"></i></button>
+            <button id="find" title="Find" ><i class="fa fa-search fa-lg"></i></button>
+            <button id="help" title="Help" ><i class="fa fa-question-circle fa-lg"></i></button>
+        </div>
+
+        <div id="heatmap"></div>
+    </div>
+</body>
+</html>

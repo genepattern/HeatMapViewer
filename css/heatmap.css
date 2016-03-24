@@ -39,40 +39,283 @@ body, html{
     width: 99%;
 }
 
-#saveImage
+#toolbar button
+{
+    font-size: 60%;
+}
+
+.saveImage
 {
     padding: 1px;
 }
 
-#saveImage span
+.saveImage span
 {
     padding: 5px 6px 5px 6px;
     margin: 0;
     font-size: 14px;
 }
 
-#saveImageDialog div
+.saveImageDialog
+{
+    font-size: 15px;
+}
+
+.saveImageDialog div
 {
     margin-top: 6px;
-    padding: 3px 4px 3px 4px;
+    padding: 3px 4px 3px 22px;
 }
 
-#saveImageDialog select {
+.saveImageDialog select {
+    margin-top: 7px;
     width: 285px;
-    height: 80px;
+    height: 60px;
 }
 
-#saveImageDialog span
+.saveImageDialog span
 {
     padding: 1px
 }
 
-#saveImageDialog input[type=text]
+.saveImageDialog input[type=text]
 {
+    margin-top: 7px;
     width: 280px;
+    height: 30px;
 }
 
 td.border
 {
     padding: 5px;
 }
+
+.optionsDialog
+{
+    margin-top: 8px;
+}
+
+.optionsDialog span
+{
+    font-size: 10px;
+}
+
+#addColor span
+{
+    font-size: 14px;
+}
+
+.optionsDialog input[type=color]
+{
+    width: 50px;
+}
+
+.optionsDialog table
+{
+   margin-top: 15px;
+}
+
+.optionsDialog table tr td
+{
+    padding: 3px;
+}
+
+.space
+{
+    margin: 20px 14px 8px 0;
+}
+
+.space label
+{
+    margin-right: 10px;
+}
+
+#discreteColorsDiv button
+{
+    font-size: 80%;
+}
+
+#discreteColorsList
+{
+    list-style-type: none;
+    overflow: auto;
+    max-height: 180px;
+    padding-left: 8px;
+}
+
+#discreteColorsList button
+{
+    font-size: 22%;
+    margin-left: 10px;
+}
+
+#discreteColorsList li
+{
+    margin: 4px 3px 5px 3px;
+    font-size: 11px;
+    height: 30px;
+    width: 95px;
+    float: left;
+}
+
+.labelDialog div
+{
+    margin-top: 10px;
+}
+
+#editLabelColors
+{
+    font-size: 80%;
+}
+
+.labelDialog
+{
+    font-size: 15px;
+}
+
+#removeFsLabels table tr:nth-child(even)
+{
+    background-color: green;
+}
+
+#removeFsLabels td
+{
+    padding: 2px;
+}
+
+#findText
+{
+    margin-top: 24px;
+    margin-left: 10px;
+    width: 88%;
+}
+
+.findDialog .findType
+{
+    margin-top: 14px;
+    margin-left: 14px;
+}
+
+.findDialog div
+{
+    margin-left: 22px;
+}
+
+#labelFile
+{
+    margin-top: 10px;
+    position: relative;
+    z-index: -999999;
+    font-size: 10px;
+}
+
+#labelDialogDiv
+{
+    margin-bottom: 15px;
+}
+
+#labelTable
+{
+    height: 150px;
+    max-height: 150px;
+    /*overflow: auto;*/
+    border-collapse: collapse;
+}
+
+#labelTable td
+{
+    padding: 2px;
+    height: 10px;
+    max-height: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+}
+
+#labelTable th
+{
+    background-color: lightgrey;
+    padding: 0;
+    margin: 0;
+    height: 20px;
+    max-height: 20px;
+}
+
+#labelDetailsTable
+{
+    border-collapse: collapse;
+    width: 90%;
+}
+
+#labelDetailsTable td
+{
+    padding: 2px;
+}
+
+#newLabelFileName
+{
+    font-size: 14px;
+}
+
+#caseSensitiveDiv
+{
+    width: 160px;
+    margin-left: 33px;
+    margin-top: 10px;
+}
+
+.previousButton
+{
+    position: absolute;
+    left: 53px;
+}
+
+.nextButton
+{
+    position: absolute;
+    left: 183px;
+}
+
+.closeButton
+{
+    margin-right: 32px !important;
+}
+
+ul#hiddenMatchesMain
+{
+    list-style-type:none;
+    font-size: 14px;
+    height: 75px;
+    overflow: auto;
+    border: 1px solid lightgray;
+    margin-left: 2px;
+}
+
+ul#hiddenMatchesList
+{
+    font-size: 12px;
+}
+
+.findDialog
+{
+    font-size: 16px;
+}
+
+#addFsLabelsFormat
+{
+    margin-left: 10px;
+    vertical-align: bottom;
+}
+
+.error
+{
+    color: red;
+}
+
+.errorDialog div
+{
+  max-height: 200px;
+}
+
