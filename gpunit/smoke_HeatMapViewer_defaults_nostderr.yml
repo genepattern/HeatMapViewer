@@ -1,0 +1,5 @@
+name: HeatMapViewer - smoke test
+description: Runs HMV with all_aml_test - JS viewer so only tests for no stderr
+module: HeatMapViewer
+params:
+    dataset: "ftp://gpftp.broadinstitute.org/pub/genepattern/datasets/protocols/all_aml_test.preprocessed.gct"
