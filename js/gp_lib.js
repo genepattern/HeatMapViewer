@@ -26,7 +26,7 @@ $(function()
                     });
 
                     if (!response.headers.has('x-amz-request-id')) // If not an S3 redirect, attach the authorization header
-                        xhr.setRequestHeader('Authorization', 'Bearer ' + token
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
                 }
             }
         });
