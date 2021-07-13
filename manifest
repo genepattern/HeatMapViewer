@@ -1,10 +1,10 @@
 #Tue, 27 Oct 2015 16:51:00 -0400
 userid=GenePattern
 author=GenePattern
-version=Initial beta release (quality='preproduction')
+version=Bug fix to support S3 files
 taskType=javascript
 taskDoc=doc.html
-publicationDate=10/27/2015 16\:51 
+publicationDate=07/13/2021 16\:51 
 description=A configurable heat map viewer that provides users with several options for manipulating and visualizing array-based data
 os=any
 cpuType=any
@@ -14,6 +14,7 @@ JVMLevel=
 language=HTML,JQuery
 name=HeatMapViewer
 privacy=public
+src.repo=https://github.com/genepattern/HeatMapViewer.git
 
 p1_TYPE=FILE
 p1_prefix_when_specified=
